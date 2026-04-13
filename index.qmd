@@ -1,0 +1,76 @@
+---
+title: "index"
+format: html
+---
+
+```{r}
+library(tidyverse)
+library(hoopR)
+
+nba_raw <- hoopR::load_nba_pbp(seasons = 2025)
+ncaa_raw <- hoopR::load_mbb_pbp(seasons = 2025)
+
+# filter for only shooting plays
+nba_shots <- nba_raw |> filter(shooting_play == TRUE, 
+                               !str_detect(tolower(type_text), "free throw"))
+ncaa_shots <- ncaa_raw |> filter(shooting_play == TRUE,
+                                 !str_detect(tolower(type_text), "freethrow"))
+
+# clean nba data
+nba_clean <- nba_shots |>
+  filter(abs(coordinate_x) <= 25 & coordinate_y <= 47) |>
+  mutate(
+    league = "NBA",
+    shot_outcome = scoring_play,
+    team_name = if_else(team_id == home_team_id, home_team_name, away_team_name),
+    pts_value = if_else(str_detect(tolower(text), "three point"), 3, 2)
+  ) |>
+  select(league, team_name, coordinate_x, coordinate_y, shot_outcome, pts_value)
+
+
+# lets keep only the top 100 ncaa teams
+top_100 <- c(
+  "Houston", "UConn", "Purdue", "Arizona", "Auburn", "Iowa State", "Tennessee", 
+  "North Carolina", "Alabama", "Duke", "Creighton", "BYU", "Illinois", 
+  "Marquette", "Baylor", "Saint Mary's", "Gonzaga", "Kentucky", "Kansas", 
+  "San Diego State", "Wisconsin", "New Mexico", "Dayton", "Michigan State", 
+  "Colorado", "Boise State", "Texas Tech", "Indiana State", "Florida", 
+  "Texas", "Mississippi State", "St. John's", "Nebraska", "Nevada", "Clemson", 
+  "Colorado State", "Cincinnati", "Utah State", "Florida Atlantic", "Pittsburgh", 
+  "Villanova", "TCU", "Wake Forest", "Washington State", "Texas A&M", 
+  "Oklahoma", "Drake", "Utah", "Ohio State", "Grand Canyon", "South Carolina", 
+  "James Madison", "Northwestern", "Virginia", "Princeton", "McNeese", 
+  "Bradley", "Providence", "Oregon", "Virginia Tech", "UCF", "Iowa", 
+  "NC State", "Xavier", "SMU", "San Francisco", "Seton Hall", "Butler", 
+  "Washington", "Kansas State", "VCU", "App State", "Richmond", "Samford", 
+  "Memphis", "UNLV", "UC Irvine", "South Florida", "North Texas", "Duquesne", 
+  "Boston College", "Maryland", "Yale", "Syracuse", "Loyola Chicago", 
+  "Penn State", "St. Bonaventure", "USC", "Minnesota", "Ole Miss", 
+  "Massachusetts", "Saint Joseph's", "George Mason", "LSU", "Cornell", 
+  "Florida State", "Charleston", "Indiana", "Louisiana Tech", "Georgia"
+)
+
+# clean ncaa data
+ncaa_clean <- ncaa_shots |>
+  filter(abs(coordinate_x) <= 25 & coordinate_y <= 47) |>
+  mutate(
+    league = "NCAA",
+    shot_outcome = scoring_play,
+    team_name = if_else(team_id == home_team_id, home_team_name, away_team_name),
+    pts_value = score_value
+  ) |>
+  select(league, team_name, coordinate_x, coordinate_y, shot_outcome, pts_value) |>
+  filter(team_name %in% top_100)
+
+
+shot_df <- bind_rows(nba_clean, ncaa_clean)
+
+# next we need to add zones 
+
+shot_df |>
+  mutate()
+
+
+
+```
+
