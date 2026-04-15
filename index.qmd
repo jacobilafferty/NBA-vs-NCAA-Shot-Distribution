@@ -18,14 +18,43 @@ ncaa_shots <- ncaa_raw |> filter(shooting_play == TRUE,
 
 # clean nba data
 nba_clean <- nba_shots |>
-  filter(abs(coordinate_x) <= 25 & coordinate_y <= 47) |>
+  # Filter for the half-court
+  filter(abs(coordinate_x) <= 47 & abs(coordinate_y) <= 25) |>
   mutate(
     league = "NBA",
     shot_outcome = scoring_play,
     team_name = if_else(team_id == home_team_id, home_team_name, away_team_name),
-    pts_value = if_else(str_detect(tolower(text), "three point"), 3, 2)
+    pts_value = if_else(str_detect(tolower(text), "three point"), 3, 2),
+    
+    # Distance from the hoop at (41.75, 0)
+    shot_dist = sqrt((abs(coordinate_x) - 41.75)^2 + coordinate_y^2),
+    # Depth from baseline 
+    court_depth = 47 - abs(coordinate_x),
+    # Width from center
+    court_width = coordinate_y,
+    
+    shot_zone = case_when(
+      shot_dist <= 4 ~ "Rim",
+      shot_dist > 4 & shot_dist <= 14 & abs(court_width) <= 8 ~ "Paint",
+      
+      # 3-Pointers
+      pts_value == 3 & court_depth <= 14 & court_width < 0 ~ "Left Corner 3",
+      pts_value == 3 & court_depth <= 14 & court_width >= 0 ~ "Right Corner 3",
+      pts_value == 3 & abs(court_width) <= 8 ~ "Top of the Key 3",
+      pts_value == 3 & court_width < -8 ~ "Left Wing 3",
+      pts_value == 3 & court_width > 8 ~ "Right Wing 3",
+      
+      # Mid-Range
+      pts_value == 2 & court_depth <= 14 & court_width < -8 ~ "Left Corner Mid",
+      pts_value == 2 & court_depth <= 14 & court_width > 8 ~ "Right Corner Mid",
+      pts_value == 2 & abs(court_width) <= 8 ~ "Mid-Range Center",
+      pts_value == 2 & court_depth > 14 & court_width < -8 ~ "Mid-Range Left",
+      pts_value == 2 & court_depth > 14 & court_width > 8 ~ "Right Wing Mid",
+      
+      TRUE ~ "Other"
+    )
   ) |>
-  select(league, team_name, coordinate_x, coordinate_y, shot_outcome, pts_value)
+  select(league, team_name, coordinate_x, coordinate_y, shot_outcome, pts_value, shot_zone)
 
 
 # lets keep only the top 100 ncaa teams
@@ -52,23 +81,47 @@ top_100 <- c(
 
 # clean ncaa data
 ncaa_clean <- ncaa_shots |>
-  filter(abs(coordinate_x) <= 25 & coordinate_y <= 47) |>
+  filter(abs(coordinate_x) <= 47 & abs(coordinate_y) <= 25) |>
   mutate(
     league = "NCAA",
     shot_outcome = scoring_play,
     team_name = if_else(team_id == home_team_id, home_team_name, away_team_name),
-    pts_value = score_value
+    pts_value = score_value,
+    
+    
+    shot_dist = sqrt((abs(coordinate_x) - 41.75)^2 + coordinate_y^2),
+    court_depth = 47 - abs(coordinate_x),
+    court_width = coordinate_y,
+    
+    # zones
+    shot_zone = case_when(
+      shot_dist <= 4 ~ "Rim",
+      shot_dist > 4 & shot_dist <= 14 & abs(court_width) <= 6 ~ "Paint",
+      
+      # 3-Pointers
+      pts_value == 3 & court_depth <= 9.25 & court_width < 0 ~ "Left Corner 3",
+      pts_value == 3 & court_depth <= 9.25 & court_width >= 0 ~ "Right Corner 3",
+      pts_value == 3 & abs(court_width) <= 8 ~ "Top of the Key 3",
+      pts_value == 3 & court_width < -8 ~ "Left Wing 3",
+      pts_value == 3 & court_width > 8 ~ "Right Wing 3",
+      
+      # Mid-Range
+      pts_value == 2 & court_depth <= 9.25 & court_width < -6 ~ "Left Corner Mid",
+      pts_value == 2 & court_depth <= 9.25 & court_width > 6 ~ "Right Corner Mid",
+      pts_value == 2 & abs(court_width) <= 8 ~ "Mid-Range Center",
+      pts_value == 2 & court_depth > 9.25 & court_width < -8 ~ "Mid-Range Left",
+      pts_value == 2 & court_depth > 9.25 & court_width > 8 ~ "Right Wing Mid",
+      
+      TRUE ~ "Other"
+    )
   ) |>
-  select(league, team_name, coordinate_x, coordinate_y, shot_outcome, pts_value) |>
-  filter(team_name %in% top_100)
+  filter(team_name %in% top_100) |>
+  select(league, team_name, coordinate_x, coordinate_y, court_width, court_depth, shot_outcome, pts_value, shot_zone)
 
 
 shot_df <- bind_rows(nba_clean, ncaa_clean)
 
-# next we need to add zones 
 
-shot_df |>
-  mutate()
 
 
 
