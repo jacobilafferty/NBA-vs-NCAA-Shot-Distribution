@@ -6,6 +6,7 @@ format: html
 ```{r}
 library(tidyverse)
 library(hoopR)
+library(ggplot2)
 
 nba_raw <- hoopR::load_nba_pbp(seasons = 2025)
 ncaa_raw <- hoopR::load_mbb_pbp(seasons = 2025)
@@ -118,11 +119,35 @@ ncaa_clean <- ncaa_shots |>
   filter(team_name %in% top_100) |>
   select(league, team_name, coordinate_x, coordinate_y, court_width, court_depth, shot_outcome, pts_value, shot_zone)
 
-
+# combine nba and ncaa into 1 df 
 shot_df <- bind_rows(nba_clean, ncaa_clean)
 
+# look at some stats per zone
+zone_efficiency <- shot_df |>
+  group_by(league, shot_zone) |>
+  summarise(
+    shots_taken = n(),
+    fg_pct = mean(shot_outcome),
+    points_per_shot = mean(shot_outcome * pts_value)
+  ) |>
+  arrange(shot_zone, league) |>
+  mutate(shot_zone = factor(shot_zone, levels = c("Rim", "Paint", "Left Corner Mid", "Right Corner Mid", "Mid-Range Left", "Right Wing Mid", "Mid-Range Center", "Left Corner 3", "Right Corner 3", "Left Wing 3", "Right Wing 3", "Top of the Key 3")))
+
+# try making a plot
+ggplot(shot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = shot_zone)) +
+  geom_point(alpha = 0.1, size = 0.5) +
+  facet_wrap(~league) +
+  theme_minimal() +
+  coord_fixed() +
+  scale_color_viridis_d() 
 
 
+# make a bar plot comparing points per zone
+ggplot(zone_efficiency, aes(x = shot_zone, y = points_per_shot, fill = league)) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  scale_fill_viridis_d() +
+  theme_minimal()
 
 
 ```
