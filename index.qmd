@@ -6,33 +6,55 @@ format: html
 # first lets check if teams are shooting more threes
 ```{r}
 
-nba_hist <- hoopR::load_nba_pbp(seasons = 2010:2025)
-ncaa_hist <- hoopR::load_mbb_pbp(seasons = 2010:2025)
+# 1. Load 10 years of Team Box Scores (much smaller than PBP)
+seasons <- 2016:2025
+
+# For NBA
+nba_box <- hoopR::load_nba_team_box(seasons = seasons)
+ncaa_box <- hoopR::load_mbb_team_box(seasons = seasons)
 
 
-# 2. Calculate 3pt rates
-nba_trend <- nba_hist |>
-  filter(shooting_play == TRUE, !str_detect(tolower(type_text), "free throw")) |>
-  mutate(is_three = if_else(str_detect(tolower(text), "three point"), 1, 0)) |>
+# 1. Calculate NBA Trends
+nba_trend <- nba_box |>
+  filter(field_goals_attempted > 0) |> 
+  mutate(three_p_ar = three_point_field_goals_attempted / field_goals_attempted) |>
   group_by(season) |>
-  summarize(three_rate = mean(is_three), league = "NBA")
+  summarize(three_rate = mean(three_p_ar, na.rm = TRUE), league = "NBA")
 
-ncaa_trend <- ncaa_hist |>
-  filter(shooting_play == TRUE, !str_detect(tolower(type_text), "freethrow")) |>
-  mutate(is_three = if_else(score_value == 3, 1, 0)) |>
+# 2. Calculate NCAA Trends (Assuming ncaa_box has the same names)
+ncaa_trend <- ncaa_box |>
+  filter(field_goals_attempted > 0) |>
+  mutate(three_p_ar = three_point_field_goals_attempted / field_goals_attempted) |>
   group_by(season) |>
-  summarize(three_rate = mean(is_three), league = "NCAA")
+  summarize(three_rate = mean(three_p_ar, na.rm = TRUE), league = "NCAA")
 
-# plot
+
+
+# 3. Combine and Plot
 bind_rows(nba_trend, ncaa_trend) |>
   ggplot(aes(x = season, y = three_rate, color = league, group = league)) +
-  geom_line(size = 1.2) +
-  geom_point(size = 3) +
-  scale_color_manual(values = c("NBA" = "#0047AB", "NCAA" = "#87CEEB")) +
+  geom_line(linewidth = 1.2) +
   theme_minimal() +
-  labs(title = "The 3-Point Revolution",
-       y = "3-Point Attempt Rate", x = "Season")
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    title = "The 10-Year 3-Point Revolution",
+    subtitle = "Rise of 3-Point Attempt Rate (3PAr) in Pro vs. Elite College Ball",
+    y = "3-Point Attempt Rate (% of Total Shots)",
+    x = "Season",
+    color = "League"
+  ) +
+  scale_color_viridis_d() +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    title = "The 10-Year 3-Point Revolution",
+    subtitle = "Rise of 3-Point Attempt Rate (3PAr) in Pro vs. Elite College Ball",
+    y = "3-Point Attempt Rate (% of Total Shots)",
+    x = "Season",
+    color = "League"
+  )
 ```
+
 
 
 
@@ -183,5 +205,35 @@ ggplot(zone_efficiency, aes(x = shot_zone, y = points_per_shot, fill = league)) 
   theme_minimal()
 
 
+```
+
+
+```{r}
+# Compute shot count per zone per league
+zone_counts <- shot_df |>
+  count(league, shot_zone) |>
+  group_by(league) |>
+  mutate(shot_pct = n / sum(n) * 100)  # % of shots from that zone
+
+# Join back so every point knows its zone's shot %
+shot_df <- shot_df |>
+  left_join(zone_counts, by = c("league", "shot_zone"))
+
+# Plot — color by shot_pct, crank up point size to fill zones visually
+ggplot(shot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = shot_pct)) +
+  geom_point(size = 1.1, alpha = 0.8) +
+  facet_wrap(~league) +
+  scale_color_gradient(
+    name   = "% of Shots",
+    low    = "white",
+    high   = "#8b0000",
+    labels = scales::label_number(suffix = "%", accuracy = 0.1)
+  ) + 
+  coord_fixed() +
+  theme_minimal() +
+  labs(
+    title = "Shot Distribution by Zone: NBA vs. NCAA",
+    x = NULL, y = NULL
+  )
 ```
 
