@@ -3,6 +3,39 @@ title: "index"
 format: html
 ---
 
+# first lets check if teams are shooting more threes
+```{r}
+
+nba_hist <- hoopR::load_nba_pbp(seasons = 2010:2025)
+ncaa_hist <- hoopR::load_mbb_pbp(seasons = 2010:2025)
+
+
+# 2. Calculate 3pt rates
+nba_trend <- nba_hist |>
+  filter(shooting_play == TRUE, !str_detect(tolower(type_text), "free throw")) |>
+  mutate(is_three = if_else(str_detect(tolower(text), "three point"), 1, 0)) |>
+  group_by(season) |>
+  summarize(three_rate = mean(is_three), league = "NBA")
+
+ncaa_trend <- ncaa_hist |>
+  filter(shooting_play == TRUE, !str_detect(tolower(type_text), "freethrow")) |>
+  mutate(is_three = if_else(score_value == 3, 1, 0)) |>
+  group_by(season) |>
+  summarize(three_rate = mean(is_three), league = "NCAA")
+
+# plot
+bind_rows(nba_trend, ncaa_trend) |>
+  ggplot(aes(x = season, y = three_rate, color = league, group = league)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 3) +
+  scale_color_manual(values = c("NBA" = "#0047AB", "NCAA" = "#87CEEB")) +
+  theme_minimal() +
+  labs(title = "The 3-Point Revolution",
+       y = "3-Point Attempt Rate", x = "Season")
+```
+
+
+
 ```{r}
 library(tidyverse)
 library(hoopR)
