@@ -76,6 +76,7 @@ ncaa_shots <- ncaa_raw |> filter(shooting_play == TRUE,
 nba_clean <- nba_shots |>
   # Filter for the half-court
   filter(abs(coordinate_x) <= 47 & abs(coordinate_y) <= 25) |>
+  filter(!str_detect(home_team_name, "Team")) |> # filters out all star teams
   mutate(
     league = "NBA",
     shot_outcome = scoring_play,
@@ -110,7 +111,7 @@ nba_clean <- nba_shots |>
       TRUE ~ "Other"
     )
   ) |>
-  select(league, team_name, coordinate_x, coordinate_y, shot_outcome, pts_value, shot_zone)
+  select(athlete_id_1, league, team_name, coordinate_x, coordinate_y, shot_outcome, pts_value, shot_zone)
 
 
 # lets keep only the top 100 ncaa teams
@@ -172,7 +173,7 @@ ncaa_clean <- ncaa_shots |>
     )
   ) |>
   filter(team_name %in% top_100) |>
-  select(league, team_name, coordinate_x, coordinate_y, court_width, court_depth, shot_outcome, pts_value, shot_zone)
+  select(athlete_id_1, league, team_name, coordinate_x, coordinate_y, court_width, court_depth, shot_outcome, pts_value, shot_zone)
 
 # combine nba and ncaa into 1 df 
 shot_df <- bind_rows(nba_clean, ncaa_clean)
@@ -208,6 +209,7 @@ ggplot(zone_efficiency, aes(x = shot_zone, y = points_per_shot, fill = league)) 
 ```
 
 
+# shots per zone
 ```{r}
 # Compute shot count per zone per league
 zone_counts <- shot_df |>
@@ -219,7 +221,7 @@ zone_counts <- shot_df |>
 shot_df <- shot_df |>
   left_join(zone_counts, by = c("league", "shot_zone"))
 
-# Plot — color by shot_pct, crank up point size to fill zones visually
+# Plot color by shot_pct, increase point size to fill zones visually
 ggplot(shot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = shot_pct)) +
   geom_point(size = 1.1, alpha = 0.8) +
   facet_wrap(~league) +
@@ -236,4 +238,166 @@ ggplot(shot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = shot_p
     x = NULL, y = NULL
   )
 ```
+
+#fg%
+```{r}
+zone_fg <- shot_df |>
+  group_by(league, shot_zone) |>
+  summarise(fg_pct = mean(shot_outcome, na.rm = TRUE) * 100, .groups = "drop")
+
+shot_df <- shot_df |>
+  left_join(zone_fg, by = c("league", "shot_zone"))
+
+ggplot(shot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = fg_pct)) +
+  geom_point(size = 1.1, alpha = 0.8) +
+  facet_wrap(~league) +
+  scale_color_gradient(
+    name   = "FG%",
+    low    = "white",
+    high   = "#8b0000",
+    labels = scales::label_number(suffix = "%", accuracy = 0.1)
+  ) +
+  coord_fixed() +
+  theme_minimal() +
+  labs(
+    title = "Field Goal % by Zone: NBA vs. NCAA",
+    x = NULL, y = NULL
+  )
+```
+
+
+# pts per shot
+```{r}
+zone_pts <- shot_df |>
+  group_by(league, shot_zone) |>
+  summarise(pts_per_shot = mean(shot_outcome * pts_value, na.rm = TRUE), .groups = "drop")
+
+shot_df <- shot_df |>
+  left_join(zone_pts, by = c("league", "shot_zone"))
+
+ggplot(shot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = pts_per_shot)) +
+  geom_point(size = 1.1, alpha = 0.8) +
+  facet_wrap(~league) +
+  scale_color_gradient(
+    name   = "Pts/Shot",
+    low    = "white",
+    high   = "#8b0000",
+    labels = scales::label_number(accuracy = 0.01)
+  ) +
+  coord_fixed() +
+  theme_minimal() +
+  labs(
+    title = "Points per Shot by Zone: NBA vs. NCAA",
+    x = NULL, y = NULL
+  )
+```
+
+# efficiency
+```{r}
+zone_pts_wide <- shot_df |>
+  group_by(league, shot_zone) |>
+  summarise(pts_per_shot = mean(shot_outcome * pts_value, na.rm = TRUE), .groups = "drop") |>
+  pivot_wider(names_from = league, values_from = pts_per_shot) |>
+  mutate(shot_zone = fct_reorder(shot_zone, NBA))  # sort by NBA value
+
+ggplot(zone_pts_wide, aes(y = shot_zone)) +
+  geom_segment(aes(x = NCAA, xend = NBA, yend = shot_zone), color = "#cccccc", linewidth = 1) +
+  geom_point(aes(x = NBA),  color = "#8b0000", size = 4) +
+  geom_point(aes(x = NCAA), color = "#d4a0a0", size = 4) +
+  geom_vline(xintercept = 1.0, linetype = "dashed", color = "#999999", linewidth = 0.7) +
+  annotate("text", x = 1.01, y = 0.6, label = "1.0 pts/shot", 
+           hjust = 0, size = 3, color = "#999999") +
+  scale_x_continuous(labels = scales::label_number(accuracy = 0.01)) +
+  theme_minimal() +
+  labs(
+    title    = "Efficiency by Zone: NBA vs. NCAA",
+    subtitle = "Dark red = NBA · Pink = NCAA · Dashed line = 1.0 pts/shot break-even",
+    x = "Points per Shot", y = NULL
+  )
+```
+
+
+
+
+
+# get players for shiny app
+```{r}
+nba_rosters  <- hoopR::load_nba_player_box(seasons = 2025) |>
+  select(athlete_id, athlete_display_name) |> distinct()
+
+ncaa_rosters <- hoopR::load_mbb_player_box(seasons = 2025) |>
+  select(athlete_id, athlete_display_name) |> distinct()
+
+rosters <- bind_rows(nba_rosters, ncaa_rosters) |> distinct()
+
+shot_df <- shot_df |>
+  left_join(rosters, by = c("athlete_id_1" = "athlete_id"))
+```
+
+
+# shiny app
+```{r}
+library(shiny)
+
+
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      radioButtons("compare_type", "Compare by:",
+                   choices = c("Teams", "Players")),
+      selectInput("metric", "Metric:",
+                  choices = c("% of Shots" = "shot_pct",
+                              "FG%"         = "fg_pct",
+                              "Pts/Shot"    = "pts_per_shot")),
+      hr(),
+      strong("Selection 1"),
+      radioButtons("league1", "League:", choices = c("NBA", "NCAA")),
+      selectizeInput("selection1", "Team/Player:", choices = NULL),
+      hr(),
+      strong("Selection 2"),
+      radioButtons("league2", "League:", choices = c("NBA", "NCAA")),
+      selectizeInput("selection2", "Team/Player:", choices = NULL),
+    ),
+
+    mainPanel(
+      fluidRow(
+        column(6, plotOutput("plot1", height = "500px")),
+        column(6, plotOutput("plot2", height = "500px"))
+      )
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  
+  # when league1 or compare_type changes, update selection1 dropdown
+  observeEvent(c(input$league1, input$compare_type), {
+    df <- shot_df |> filter(league == input$league1)
+    if (input$compare_type == "Teams") {
+      new_choices <- df |> distinct(team_name) |> pull(team_name) |> sort()
+    } else {
+      new_choices <- df |> filter(!is.na(athlete_display_name)) |>
+        distinct(athlete_display_name) |> pull(athlete_display_name) |> sort()
+    }
+    updateSelectizeInput(inputId = "selection1", choices = new_choices)
+  })
+
+  # same for selection2
+  observeEvent(c(input$league2, input$compare_type), {
+    df <- shot_df |> filter(league == input$league2)
+    if (input$compare_type == "Teams") {
+      new_choices <- df |> distinct(team_name) |> pull(team_name) |> sort()
+    } else {
+      new_choices <- df |> filter(!is.na(athlete_display_name)) |>
+        distinct(athlete_display_name) |> pull(athlete_display_name) |> sort()
+    }
+    updateSelectizeInput(inputId = "selection2", choices = new_choices)
+  })
+  
+}
+
+shinyApp(ui, server)
+```
+
+
 
