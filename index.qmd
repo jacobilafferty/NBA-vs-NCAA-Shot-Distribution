@@ -335,12 +335,14 @@ shot_df <- shot_df |>
 ```
 
 
+
 # shiny app
 ```{r}
 library(shiny)
 
 
 ui <- fluidPage(
+  titlePanel("NBA vs. NCAA Shot Zone Explorer"),
   sidebarLayout(
     sidebarPanel(
       radioButtons("compare_type", "Compare by:",
@@ -394,10 +396,183 @@ server <- function(input, output, session) {
     updateSelectizeInput(inputId = "selection2", choices = new_choices)
   })
   
+  # reactive 1
+  reactive_df1 <- reactive({
+    df <- shot_df |> filter(league == input$league1)
+    if (input$compare_type == "Teams") {
+      df |> filter(team_name == input$selection1)
+    } else {
+      df |> filter(athlete_display_name == input$selection1)
+    }
+  })
+
+  # reactive 2
+  reactive_df2 <- reactive({
+    df <- shot_df |> filter(league == input$league2)
+    if (input$compare_type == "Teams") {
+      df |> filter(team_name == input$selection2)
+    } else {
+      df |> filter(athlete_display_name == input$selection2)
+    }
+  })
+  
+  
+  # plot 1
+  output$plot1 <- renderPlot({
+    
+    # labels for plot titles
+    metric_label <- case_when(
+      input$metric == "shot_pct" ~ "% of Total Shots",
+      input$metric == "fg_pct" ~ "FG%",
+      input$metric == "pts_per_shot" ~ "Expected Points Per Shot"
+    )
+  
+    zone_stats <- reactive_df1() |>
+      group_by(shot_zone) |>
+      summarise(
+        n = n(),
+        low_sample  = n() < 15,
+        fg_pct = mean(shot_outcome, na.rm = TRUE) * 100,
+        pts_per_shot = mean(shot_outcome * pts_value, na.rm = TRUE),
+        .groups = "drop"
+      ) |>
+      mutate(
+        shot_pct = n / sum(n) * 100,
+        value = if (input$metric == "shot_pct") shot_pct
+                else if (input$metric == "fg_pct") fg_pct
+                else pts_per_shot
+      )
+  
+    plot_df <- reactive_df1() |> left_join(zone_stats, by = "shot_zone")
+  
+    ggplot(plot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = value)) +
+      geom_point(aes(alpha = if_else(low_sample, 0.15, 0.8)), size = 1.1) +
+      scale_color_gradient(name = input$metric, low = "#fde8e8", high = "#8b0000") +
+      scale_alpha_identity() +
+      coord_fixed() +
+      theme_minimal() +
+      labs(title = glue::glue(input$selection1, " ", metric_label), 
+           x = NULL, 
+           y = NULL,
+           caption = "Zones with less than 15 shots will be faded.")
+  })
+
+  # plot 2
+  output$plot2 <- renderPlot({
+    
+    # labels for plot titles
+    metric_label <- case_when(
+      input$metric == "shot_pct" ~ "% of Total Shots",
+      input$metric == "fg_pct" ~ "FG%",
+      input$metric == "pts_per_shot" ~ "Expected Points per Shot"
+    )
+  
+    zone_stats <- reactive_df2() |>
+      group_by(shot_zone) |>
+      summarise(
+        n = n(),
+        low_sample = n() < 15,
+        fg_pct = mean(shot_outcome, na.rm = TRUE) * 100,
+        pts_per_shot = mean(shot_outcome * pts_value, na.rm = TRUE),
+        .groups = "drop"
+      ) |>
+      mutate(
+        shot_pct = n / sum(n) * 100,
+        value = if (input$metric == "shot_pct") shot_pct
+                else if (input$metric == "fg_pct") fg_pct
+                else pts_per_shot
+      )
+  
+  plot_df <- reactive_df2() |> left_join(zone_stats, by = "shot_zone")
+  
+  ggplot(plot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = value)) +
+    geom_point(aes(alpha = if_else(low_sample, 0.15, 0.8)), size = 1.1) +
+    scale_color_gradient(name = input$metric, low = "#fde8e8", high = "#8b0000") +
+    scale_alpha_identity() +
+    coord_fixed() +
+    theme_minimal() +
+    labs(title = glue::glue(input$selection2, " ", metric_label), 
+         x = NULL, 
+         y = NULL,
+         caption = "Zones with less than 15 shots will be faded.")
+  })
+  
 }
 
 shinyApp(ui, server)
 ```
 
 
+```{r}
+# code for a plot
+test_df <- shot_df |> filter(team_name == "Boston", league == "NBA")
+
+total_shots <- nrow(test_df)
+
+zone_stats <- test_df |>
+  group_by(shot_zone) |>
+  summarise(
+    n          = n(),
+    value      = n() / total_shots * 100,
+    low_sample = n() < 15,
+    .groups    = "drop"
+  )
+
+plot_df <- test_df |> left_join(zone_stats, by = "shot_zone")
+
+ggplot(plot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = value)) +
+  geom_point(aes(alpha = if_else(low_sample, 0.15, 0.8)), size = 1.1) +
+  scale_color_gradient(
+    name = "% of Shots",
+    low  = "white", high = "#8b0000"
+  ) +
+  scale_alpha_identity() +
+  coord_fixed() +
+  theme_minimal() +
+  labs(title = "Boston", x = NULL, y = NULL)
+```
+
+```{r}
+# test fg% for boston
+zone_stats <- test_df |>
+  group_by(shot_zone) |>
+  summarise(
+    n          = n(),
+    low_sample = n() < 15,
+    value      = mean(shot_outcome, na.rm = TRUE) * 100,
+    .groups    = "drop"
+  )
+
+plot_df <- test_df |> left_join(zone_stats, by = "shot_zone")
+
+ggplot(plot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = value)) +
+  geom_point(aes(alpha = if_else(low_sample, 0.15, 0.8)), size = 1.1) +
+  scale_color_gradient(name = "FG%", low = "#fde8e8", high = "#8b0000") +
+  scale_alpha_identity() +
+  coord_fixed() +
+  theme_minimal() +
+  labs(title = "Boston", x = NULL, y = NULL)
+```
+
+```{r}
+# test pts per shot
+zone_stats <- test_df |>
+  group_by(shot_zone) |>
+  summarise(
+    n          = n(),
+    low_sample = n() < 15,
+    value      = mean(shot_outcome * pts_value, na.rm = TRUE),
+    .groups    = "drop"
+  )
+
+plot_df <- test_df |> left_join(zone_stats, by = "shot_zone")
+
+ggplot(plot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = value)) +
+  geom_point(aes(alpha = if_else(low_sample, 0.15, 0.8)), size = 1.1) +
+  scale_color_gradient(name = "Pts/Shot", low = "#fde8e8", high = "#8b0000") +
+  scale_alpha_identity() +
+  coord_fixed() +
+  theme_minimal() +
+  labs(title = "Boston", x = NULL, y = NULL)
+```
 
