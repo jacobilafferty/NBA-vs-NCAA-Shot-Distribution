@@ -3,6 +3,16 @@ title: "index"
 format: html
 ---
 
+# Introduction
+Over the past decade, basketball has been going through a shift, largely due to analytics. Teams have been viewing the three point shot as more and more valuable, while the mid-range slowly becomes a lost art. Throughout basketball history, people have always been encouraged to take a step in if they have a better chance of making the shot. However, as of late the game has shifted into the idea of getting as many threes and layups as possible.
+
+Public opinion seems to say that this change has mainly effected the NBA, while college basketball sticks to traditional, fundamental game plans. People seem to think college teams, while obviously shooting more threes than they used to, haven't fully subscribed to this new ideology of abandoning the mid range. 
+
+For this project, I'm using play-by-play data from the 2024-2025 NBA and NCAA seasons(found in the hoopR R package) to examine shot selection and efficiency at both levels of basketball. I want to determine if this evolution of the three pointer has really effected the NBA more than the college level, and also if this shift in ideology is even the right approach to begin with. Should teams continue to try and maximize their efficiency by eliminating mid range shots, or are teams that subscribe to this philosophy hurting themselves?
+
+To tackle these questions, I'm going to be breaking the court into 12 hotzones, 5 zones behind the three point line, 5 zones in the midrange, a zone for shots at the rim, and a zone for other shots in the paint. I'm going to be looking at all 30 NBA teams from the 2025 season, but I'm filtering out some college teams so we are only looking at the top 100 teams from the 2025 season. That way we can filter out any weird outliers or really bad teams. 
+
+
 # first lets check if teams are shooting more threes
 ```{r}
 
