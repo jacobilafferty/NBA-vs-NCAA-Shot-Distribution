@@ -16,6 +16,7 @@ I used play-by-play data from the 2025 NBA and NCAA seasons sourced from the hoo
 Here are a couple plots I used to help explore my research questions.
 
 ```{r}
+#| echo: false
 # Compute shot count per zone per league
 zone_counts <- shot_df |>
   count(league, shot_zone) |>
@@ -44,6 +45,7 @@ ggplot(shot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = shot_p
 ```
 
 ```{r}
+#| echo: false
 zone_pts <- shot_df |>
   group_by(league, shot_zone) |>
   summarise(pts_per_shot = mean(shot_outcome * pts_value, na.rm = TRUE), .groups = "drop")
