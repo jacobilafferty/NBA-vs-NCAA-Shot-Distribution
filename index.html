@@ -6,6 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Jacobi Lafferty">
+<meta name="dcterms.date" content="2026-04-30">
 
 <title>The Three Point Revolution: NBA vs NCAA</title>
 <style>
@@ -83,13 +85,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">The Three Point Revolution: NBA vs NCAA</h1>
-</div>
+  <div class="quarto-categories">
+    <div class="quarto-category">analysis</div>
+    <div class="quarto-category">NBA</div>
+    <div class="quarto-category">NCAA</div>
+  </div>
+  </div>
 
 
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jacobi Lafferty </p>
+          </div>
+  </div>
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">April 30, 2026</p>
+    </div>
+  </div>
   
     
   </div>
@@ -99,19 +118,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="abstract" class="level1">
-<h1>Abstract</h1>
+<section id="abstract" class="level2">
+<h2 class="anchored" data-anchor-id="abstract">Abstract</h2>
 <p>This project examines the three point revolution in basketball at both the NBA and NCAA levels by examining shot selection and efficiency. I’m using play by play data from the 2025 season, pulled from the hoopR R package. I categorize the court into 12 different zones to observe shot distribution, field goal percentage, and points per shot. I confirmed that three point rates have been steadily rising for both leagues over the past decade, but more dramatically for the NBA. Further analysis indicates that this is the correct approach for both leagues, and three pointers generate much more value than mid range shots. Teams in both leagues, but especially the NCAA, should continue to look for three point attempts, and try to minimize mid range shots. I’ve also included a shiny app that allows users to compare these things across different matchups of both NBA and NCAA teams or players.</p>
 </section>
-<section id="introduction" class="level1">
-<h1>Introduction</h1>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
 <p>Over the past decade, basketball has been going through a shift, largely due to analytics. Teams have been viewing the three point shot as more and more valuable, while the mid-range slowly becomes a lost art. Throughout basketball history, people have always been encouraged to take a step in if they have a better chance of making the shot. However, as of late the game has shifted into the idea of getting as many threes and layups as possible.</p>
 <p>Public opinion seems to say that this change has mainly affected the NBA, while college basketball sticks to traditional, fundamental game plans. People seem to think college teams, while obviously shooting more threes than they used to, haven’t fully subscribed to this new ideology of abandoning the mid range.</p>
 <p>For this project, I’m using play-by-play data from the 2024-2025 NBA and NCAA seasons (found in the hoopR R package) to examine shot selection and efficiency at both levels of basketball. I want to determine if this evolution of the three pointer has really affected the NBA more than the college level, and also if this shift in ideology is even the right approach to begin with. Should teams continue to try and maximize their efficiency by eliminating mid range shots, or are teams that subscribe to this philosophy hurting themselves?</p>
 <p>To tackle these questions, I’m going to be breaking the court into 12 hot zones, 5 zones behind the three point line, 5 zones in the midrange, a zone for shots at the rim, and a zone for other shots in the paint. I’m going to be looking at all 30 NBA teams from the 2025 season, but I’m filtering out some college teams so we are only looking at the top 100 teams from the 2025 season. That way we can filter out any weird outliers or really bad college teams.</p>
 </section>
-<section id="are-teams-shooting-more-threes" class="level1">
-<h1>Are teams Shooting More Threes?</h1>
+<section id="are-teams-shooting-more-threes" class="level2">
+<h2 class="anchored" data-anchor-id="are-teams-shooting-more-threes">Are teams Shooting More Threes?</h2>
 <p>To begin exploring how shot distribution has evolved, let’s first find out if this three point revolution is as drastic as people say.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
@@ -295,8 +314,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-127"><a href="#cb2-127" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">shot_zone =</span> <span class="fu">factor</span>(shot_zone, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Rim"</span>, <span class="st">"Paint"</span>, <span class="st">"Left Corner Mid"</span>, <span class="st">"Right Corner Mid"</span>, <span class="st">"Mid-Range Left"</span>, <span class="st">"Right Wing Mid"</span>, <span class="st">"Mid-Range Center"</span>, <span class="st">"Left Corner 3"</span>, <span class="st">"Right Corner 3"</span>, <span class="st">"Left Wing 3"</span>, <span class="st">"Right Wing 3"</span>, <span class="st">"Top of the Key 3"</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="shot-distribution" class="level1">
-<h1>Shot Distribution</h1>
+<section id="shot-distribution" class="level2">
+<h2 class="anchored" data-anchor-id="shot-distribution">Shot Distribution</h2>
 <p>With three point attempts clearly on the rise, let’s focus on just the 2025 year. First we can look at where exactly the most shots are being taken on the court.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute shot count per zone per league</span></span>
@@ -335,8 +354,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>This displays shot distribution for each league. Each individual point is a shot attempt. Points are grouped by which of the 12 zones they are in, and colored by the % of shots are taken from that zone. Darker points mean more shots are taken from there.</p>
 <p>It looks like both leagues follow generally the same pattern. The zones with the most shots are at the rim and in the paint, followed by threes. It’s clear that in both the NBA and NCAA, teams are moving away from the mid range shot. However, there are some subtle differences we can observe. The NBA seems to be a little darker from three, especially in the corners. NCAA looks a little darker in the paint, further supporting the idea that the NBA is embracing this revolution slightly more, while college teams might be a little slower to catch on.</p>
 </section>
-<section id="field-goal-percentage-by-zone" class="level1">
-<h1>Field Goal Percentage By Zone</h1>
+<section id="field-goal-percentage-by-zone" class="level2">
+<h2 class="anchored" data-anchor-id="field-goal-percentage-by-zone">Field Goal Percentage By Zone</h2>
 <p>Next, let’s take a look at teams’ field goal percentage across the two levels of basketball.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>zone_fg <span class="ot">&lt;-</span> shot_df <span class="sc">|&gt;</span></span>
@@ -371,8 +390,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>At first glance, it appears mid range shots look appealing, especially in the NBA. NBA teams seem to shoot a significantly better percentage from the mid range than they do from three. College teams do not have as much success from the mid range. If anything, this plot supports the idea that college teams should be much more aggressively embracing the philosophy of more threes, while maybe the NBA teams should be the ones hesitating. One other thing to note is that teams shoot a better percentage on corner threes than any other three point shot. This is likely because it’s a tiny bit closer than from the wings and the top of the key.</p>
 <p>While field goal percentage by itself might suggest mid range shots as perfectly reasonable, it ignores the fact that it’s two points instead of three. Let’s look at whether or not the increased field goal percentages really make mid range shots more valuable than threes.</p>
 </section>
-<section id="efficiency" class="level1">
-<h1>Efficiency</h1>
+<section id="efficiency" class="level2">
+<h2 class="anchored" data-anchor-id="efficiency">Efficiency</h2>
 <p>To help us determine the value of each shot, I created a new variable called points per shot. It is the mean of the outcome of a the shot times the value of the shot. So essentially, the average points generated per attempt.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>zone_pts <span class="ot">&lt;-</span> shot_df <span class="sc">|&gt;</span></span>
@@ -406,8 +425,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>When looking at points per shot across the 12 zones, the picture changes dramatically. Shots at the rim are obviously the most valuable for both leagues, simply because they are so close that field goal percentages are much higher. After that, for both leagues the three point shot is the most valuable. Even threes that aren’t from the corner are beating out not only mid range shots, but also shots in the paint. For both leagues, mid range shots are clearly the worst value shot on the court. This is even more of the case for college teams, which much like the last plot depicting field goal percentages, showcases that college teams should be fully embracing this new philosophy of getting up as many threes as possible.</p>
 </section>
-<section id="a-closer-look-at-efficiency" class="level1">
-<h1>A Closer Look at Efficiency</h1>
+<section id="a-closer-look-at-efficiency" class="level2">
+<h2 class="anchored" data-anchor-id="a-closer-look-at-efficiency">A Closer Look at Efficiency</h2>
 <p>I found the points per shot plot very intriguing, and wanted to get a closer look at some of the things it was depicting. The following plot helps quantify the efficiency gap between leagues for each zone on the court.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>zone_pts_wide <span class="ot">&lt;-</span> shot_df <span class="sc">|&gt;</span></span>
@@ -440,8 +459,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>Looking at this plot, things seem pretty consistent across both leagues. We knew that that shots around the rim were the most efficient, followed by any three pointer. I added a dotted line at a benchmark of 1 point per shot, which is about average value. The only shots that fall above that benchmark are at the rim and from three, while everything else falls below it. Another thing to take away from this plot is that the NBA generates more points per shot from every zone, which makes sense considering the players are better at a professional level. The gap between NBA and NCAA seems to be larger at mid range spots. This indicates that mid range shots can be tougher shots for less skilled players, and further supports the idea that college teams should fully lean into this new system.</p>
 </section>
-<section id="shiny-app" class="level1">
-<h1>Shiny App</h1>
+<section id="shiny-app" class="level2">
+<h2 class="anchored" data-anchor-id="shiny-app">Shiny App</h2>
 <p>While the visualizations above help us examine shot selection and answer our research questions, I wanted to make a shiny app that allows for more exploration. Users can select Either NBA or NCAA teams and players to compare. You can look at all the things we talked about above like their shot distribution, field goal percentage, and points per shot. This can be used to compare different match ups before games, compare college players with their NBA comparisons before a draft, or anything else somebody might be interested in. Zones with fewer than 15 shots will be faded to help indicate small sample sizes, which is sometimes relevant when looking at certain players.</p>
 <p>The code and link to the shiny app can be found below: <a href="https://jacobilafferty.shinyapps.io/NBAvsNCAA/">ShinyApp</a></p>
 <div class="cell">
@@ -623,8 +642,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-176"><a href="#cb7-176" aria-hidden="true" tabindex="-1"></a><span class="fu">shinyApp</span>(ui, server)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="conclusion" class="level1">
-<h1>Conclusion</h1>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
 <p>For this project, I wanted to examine how shot selection has evolved for both the NBA and NCAA. From this data and these visualizations, we can conclude that both levels are adapting to the idea of taking more threes. The NBA has been much more eager to increase their three point attempts, while the NCAA follows at a slightly slower pace. We can also safely say that this is the correct approach. Three point shots in the modern era are much more valuable than mid range shots and both leagues, but especially the NCAA should continue to utilize this.</p>
 <p>In the future, there are a couple things related to this that I would like to continue exploring. For this project I only looked at the top 100 NCAA teams to avoid bad outliers. I would love to see if these conclusions remain the same for some of the less talented teams as well. Due to the size of the play by play data, I was also limited to the 2025 season. I would love to be able to explore more of these trend throughout the history of basketball, and see if threes were always more valuable and teams are just now starting to realize. I think this is a direction I would love to take with the shiny app, so users can compare teams and players across different eras.</p>
 </section>

@@ -1,12 +1,15 @@
 ---
 title: "The Three Point Revolution: NBA vs NCAA"
+author: "Jacobi Lafferty"
+date: "2026-04-30"
+categories: [analysis, NBA, NCAA]
 format: html
 ---
 
-# Abstract
+## Abstract
 This project examines the three point revolution in basketball at both the NBA and NCAA levels by examining shot selection and efficiency. I'm using play by play data from the 2025 season, pulled from the hoopR R package. I categorize the court into 12 different zones to observe shot distribution, field goal percentage, and points per shot. I confirmed that three point rates have been steadily rising for both leagues over the past decade, but more dramatically for the NBA. Further analysis indicates that this is the correct approach for both leagues, and three pointers generate much more value than mid range shots. Teams in both leagues, but especially the NCAA, should continue to look for three point attempts, and try to minimize mid range shots. I've also included a shiny app that allows users to compare these things across different matchups of both NBA and NCAA teams or players.
 
-# Introduction
+## Introduction
 Over the past decade, basketball has been going through a shift, largely due to analytics. Teams have been viewing the three point shot as more and more valuable, while the mid-range slowly becomes a lost art. Throughout basketball history, people have always been encouraged to take a step in if they have a better chance of making the shot. However, as of late the game has shifted into the idea of getting as many threes and layups as possible.
 
 Public opinion seems to say that this change has mainly affected the NBA, while college basketball sticks to traditional, fundamental game plans. People seem to think college teams, while obviously shooting more threes than they used to, haven't fully subscribed to this new ideology of abandoning the mid range. 
@@ -16,7 +19,7 @@ For this project, I'm using play-by-play data from the 2024-2025 NBA and NCAA se
 To tackle these questions, I'm going to be breaking the court into 12 hot zones, 5 zones behind the three point line, 5 zones in the midrange, a zone for shots at the rim, and a zone for other shots in the paint. I'm going to be looking at all 30 NBA teams from the 2025 season, but I'm filtering out some college teams so we are only looking at the top 100 teams from the 2025 season. That way we can filter out any weird outliers or really bad college teams.
 
 
-# Are teams Shooting More Threes? 
+## Are teams Shooting More Threes? 
 
 To begin exploring how shot distribution has evolved, let's first find out if this three point revolution is as drastic as people say. 
 
@@ -205,7 +208,7 @@ zone_efficiency <- shot_df |>
 ```
 
 
-# Shot Distribution
+## Shot Distribution
 
 With three point attempts clearly on the rise, let's focus on just the 2025 year. First we can look at where exactly the most shots are being taken on the court. 
 
@@ -241,7 +244,7 @@ This displays shot distribution for each league. Each individual point is a shot
 
 It looks like both leagues follow generally the same pattern. The zones with the most shots are at the rim and in the paint, followed by threes. It's clear that in both the NBA and NCAA, teams are moving away from the mid range shot. However, there are some subtle differences we can observe. The NBA seems to be a little darker from three, especially in the corners. NCAA looks a little darker in the paint, further supporting the idea that the NBA is embracing this revolution slightly more, while college teams might be a little slower to catch on. 
 
-# Field Goal Percentage By Zone
+## Field Goal Percentage By Zone
 
 Next, let's take a look at teams' field goal percentage across the two levels of basketball. 
 
@@ -273,7 +276,7 @@ At first glance, it appears mid range shots look appealing, especially in the NB
 
 While field goal percentage by itself might suggest mid range shots as perfectly reasonable, it ignores the fact that it's two points instead of three. Let's look at whether or not the increased field goal percentages really make mid range shots more valuable than threes. 
 
-# Efficiency
+## Efficiency
 
 To help us determine the value of each shot, I created a new variable called points per shot. It is the mean of the outcome of a the shot times the value of the shot. So essentially, the average points generated per attempt. 
 
@@ -303,7 +306,7 @@ ggplot(shot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = pts_pe
 
 When looking at points per shot across the 12 zones, the picture changes dramatically. Shots at the rim are obviously the most valuable for both leagues, simply because they are so close that field goal percentages are much higher. After that, for both leagues the three point shot is the most valuable. Even threes that aren't from the corner are beating out not only mid range shots, but also shots in the paint. For both leagues, mid range shots are clearly the worst value shot on the court. This is even more of the case for college teams, which much like the last plot depicting field goal percentages, showcases that college teams should be fully embracing this new philosophy of getting up as many threes as possible. 
 
-# A Closer Look at Efficiency
+## A Closer Look at Efficiency
 
 I found the points per shot plot very intriguing, and wanted to get a closer look at some of the things it was depicting. The following plot helps quantify the efficiency gap between leagues for each zone on the court.
 
@@ -336,7 +339,7 @@ Looking at this plot, things seem pretty consistent across both leagues. We knew
 
 
 
-# Shiny App
+## Shiny App
 
 While the visualizations above help us examine shot selection and answer our research questions, I wanted to make a shiny app that allows for more exploration. Users can select Either NBA or NCAA teams and players to compare. You can look at all the things we talked about above like their shot distribution, field goal percentage, and points per shot. This can be used to compare different match ups before games, compare college players with their NBA comparisons before a draft, or anything else somebody might be interested in. Zones with fewer than 15 shots will be faded to help indicate small sample sizes, which is sometimes relevant when looking at certain players.
 
@@ -526,7 +529,7 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-# Conclusion
+## Conclusion
 
 For this project, I wanted to examine how shot selection has evolved for both the NBA and NCAA. From this data and these visualizations, we can conclude that both levels are adapting to the idea of taking more threes. The NBA has been much more eager to increase their three point attempts, while the NCAA follows at a slightly slower pace. We can also safely say that this is the correct approach. Three point shots in the modern era are much more valuable than mid range shots and both leagues, but especially the NCAA should continue to utilize this.
 
