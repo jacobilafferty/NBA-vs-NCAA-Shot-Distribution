@@ -1,24 +1,251 @@
 ---
-title: "Untitled"
+title: "The Three Point Revolution: NBA vs NCAA"
 format: revealjs
 editor: visual
 ---
 
-## Quarto
+```{r}
+library(tidyverse)
+library(hoopR)
+library(ggplot2)
 
-Quarto enables you to weave together content and executable code into a finished presentation. To learn more about Quarto presentations see <https://quarto.org/docs/presentations/>.
+nba_raw <- hoopR::load_nba_pbp(seasons = 2025)
+ncaa_raw <- hoopR::load_mbb_pbp(seasons = 2025)
 
-## Bullets
+# filter for only shooting plays
+nba_shots <- nba_raw |> filter(shooting_play == TRUE, 
+                               !str_detect(tolower(type_text), "free throw"))
+ncaa_shots <- ncaa_raw |> filter(shooting_play == TRUE,
+                                 !str_detect(tolower(type_text), "freethrow"))
 
-When you click the **Render** button a document will be generated that includes:
+# clean nba data
+nba_clean <- nba_shots |>
+  # Filter for the half-court
+  filter(abs(coordinate_x) <= 47 & abs(coordinate_y) <= 25) |>
+  filter(!str_detect(home_team_name, "Team")) |> # filters out all star teams
+  mutate(
+    league = "NBA",
+    shot_outcome = scoring_play,
+    team_name = if_else(team_id == home_team_id, home_team_name, away_team_name),
+    pts_value = if_else(str_detect(tolower(text), "three point"), 3, 2),
+    
+    # Distance from the hoop at (41.75, 0)
+    shot_dist = sqrt((abs(coordinate_x) - 41.75)^2 + coordinate_y^2),
+    # Depth from baseline 
+    court_depth = 47 - abs(coordinate_x),
+    # Width from center
+    court_width = coordinate_y,
+    
+    
+    # make the court zones
+    shot_zone = case_when(
+      shot_dist <= 4 ~ "Rim",
+      shot_dist > 4 & shot_dist <= 14 & abs(court_width) <= 8 ~ "Paint",
+      
+      # 3-Pointers
+      pts_value == 3 & court_depth <= 14 & court_width < 0 ~ "Left Corner 3",
+      pts_value == 3 & court_depth <= 14 & court_width >= 0 ~ "Right Corner 3",
+      pts_value == 3 & abs(court_width) <= 8 ~ "Top of the Key 3",
+      pts_value == 3 & court_width < -8 ~ "Left Wing 3",
+      pts_value == 3 & court_width > 8 ~ "Right Wing 3",
+      
+      # Mid-Range
+      pts_value == 2 & court_depth <= 14 & court_width < -8 ~ "Left Corner Mid",
+      pts_value == 2 & court_depth <= 14 & court_width > 8 ~ "Right Corner Mid",
+      pts_value == 2 & abs(court_width) <= 8 ~ "Mid-Range Center",
+      pts_value == 2 & court_depth > 14 & court_width < -8 ~ "Mid-Range Left",
+      pts_value == 2 & court_depth > 14 & court_width > 8 ~ "Right Wing Mid",
+      
+      TRUE ~ "Other"
+    )
+  ) |>
+  select(athlete_id_1, league, team_name, coordinate_x, coordinate_y, shot_outcome, pts_value, shot_zone)
 
--   Content authored with markdown
--   Output from executable code
 
-## Code
+# lets keep only the top 100 ncaa teams
+top_100 <- c(
+  "Houston", "UConn", "Purdue", "Arizona", "Auburn", "Iowa State", "Tennessee", 
+  "North Carolina", "Alabama", "Duke", "Creighton", "BYU", "Illinois", 
+  "Marquette", "Baylor", "Saint Mary's", "Gonzaga", "Kentucky", "Kansas", 
+  "San Diego State", "Wisconsin", "New Mexico", "Dayton", "Michigan State", 
+  "Colorado", "Boise State", "Texas Tech", "Indiana State", "Florida", 
+  "Texas", "Mississippi State", "St. John's", "Nebraska", "Nevada", "Clemson", 
+  "Colorado State", "Cincinnati", "Utah State", "Florida Atlantic", "Pittsburgh", 
+  "Villanova", "TCU", "Wake Forest", "Washington State", "Texas A&M", 
+  "Oklahoma", "Drake", "Utah", "Ohio State", "Grand Canyon", "South Carolina", 
+  "James Madison", "Northwestern", "Virginia", "Princeton", "McNeese", 
+  "Bradley", "Providence", "Oregon", "Virginia Tech", "UCF", "Iowa", 
+  "NC State", "Xavier", "SMU", "San Francisco", "Seton Hall", "Butler", 
+  "Washington", "Kansas State", "VCU", "App State", "Richmond", "Samford", 
+  "Memphis", "UNLV", "UC Irvine", "South Florida", "North Texas", "Duquesne", 
+  "Boston College", "Maryland", "Yale", "Syracuse", "Loyola Chicago", 
+  "Penn State", "St. Bonaventure", "USC", "Minnesota", "Ole Miss", 
+  "Massachusetts", "Saint Joseph's", "George Mason", "LSU", "Cornell", 
+  "Florida State", "Charleston", "Indiana", "Louisiana Tech", "Georgia"
+)
 
-When you click the **Render** button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:
+# clean ncaa data
+ncaa_clean <- ncaa_shots |>
+  filter(abs(coordinate_x) <= 47 & abs(coordinate_y) <= 25) |>
+  mutate(
+    league = "NCAA",
+    shot_outcome = scoring_play,
+    team_name = if_else(team_id == home_team_id, home_team_name, away_team_name),
+    pts_value = score_value,
+    
+    
+    shot_dist = sqrt((abs(coordinate_x) - 41.75)^2 + coordinate_y^2),
+    court_depth = 47 - abs(coordinate_x),
+    court_width = coordinate_y,
+    
+    # zones
+    shot_zone = case_when(
+      shot_dist <= 4 ~ "Rim",
+      shot_dist > 4 & shot_dist <= 14 & abs(court_width) <= 6 ~ "Paint",
+      
+      # 3-Pointers
+      pts_value == 3 & court_depth <= 9.25 & court_width < 0 ~ "Left Corner 3",
+      pts_value == 3 & court_depth <= 9.25 & court_width >= 0 ~ "Right Corner 3",
+      pts_value == 3 & abs(court_width) <= 8 ~ "Top of the Key 3",
+      pts_value == 3 & court_width < -8 ~ "Left Wing 3",
+      pts_value == 3 & court_width > 8 ~ "Right Wing 3",
+      
+      # Mid-Range
+      pts_value == 2 & court_depth <= 9.25 & court_width < -6 ~ "Left Corner Mid",
+      pts_value == 2 & court_depth <= 9.25 & court_width > 6 ~ "Right Corner Mid",
+      pts_value == 2 & abs(court_width) <= 8 ~ "Mid-Range Center",
+      pts_value == 2 & court_depth > 9.25 & court_width < -8 ~ "Mid-Range Left",
+      pts_value == 2 & court_depth > 9.25 & court_width > 8 ~ "Right Wing Mid",
+      
+      TRUE ~ "Other"
+    )
+  ) |>
+  filter(team_name %in% top_100) |>
+  select(athlete_id_1, league, team_name, coordinate_x, coordinate_y, court_width, court_depth, shot_outcome, pts_value, shot_zone)
+
+# combine nba and ncaa into 1 df 
+shot_df <- bind_rows(nba_clean, ncaa_clean)
+
+# look at some stats per zone
+zone_efficiency <- shot_df |>
+  group_by(league, shot_zone) |>
+  summarise(
+    shots_taken = n(),
+    fg_pct = mean(shot_outcome),
+    points_per_shot = mean(shot_outcome * pts_value)
+  ) |>
+  arrange(shot_zone, league) |>
+  mutate(shot_zone = factor(shot_zone, levels = c("Rim", "Paint", "Left Corner Mid", "Right Corner Mid", "Mid-Range Left", "Right Wing Mid", "Mid-Range Center", "Left Corner 3", "Right Corner 3", "Left Wing 3", "Right Wing 3", "Top of the Key 3")))
+```
+
+
+## Data Introduction
+
+- play by play data from 2025 season for both NBA and NCAA
+- data is from hoopR R package
+- categorizing shots into 12 zones on the court
+
+## Questions of Interest
+
+- Has the three point revolution effected NBA or NCAA teams more?
+- Is the approach of shooting more threes correct? 
+- Does it generate more efficient offense?
+
+## Are Teams Shooting More Threes?
 
 ```{r}
-1 + 1
+# Load 10 years of Team Box Scores - because it's smaller than pbp data 
+seasons <- 2016:2025
+
+nba_box <- hoopR::load_nba_team_box(seasons = seasons)
+ncaa_box <- hoopR::load_mbb_team_box(seasons = seasons)
+
+
+# Calculate NBA Trends
+nba_trend <- nba_box |>
+  filter(field_goals_attempted > 0) |> 
+  mutate(three_p_ar = three_point_field_goals_attempted / field_goals_attempted) |>
+  group_by(season) |>
+  summarize(three_rate = mean(three_p_ar, na.rm = TRUE), league = "NBA")
+
+# Calculate NCAA Trends
+ncaa_trend <- ncaa_box |>
+  filter(field_goals_attempted > 0) |>
+  mutate(three_p_ar = three_point_field_goals_attempted / field_goals_attempted) |>
+  group_by(season) |>
+  summarize(three_rate = mean(three_p_ar, na.rm = TRUE), league = "NCAA")
+
+
+
+# Make the Plot
+bind_rows(nba_trend, ncaa_trend) |>
+  ggplot(aes(x = season, y = three_rate, color = league, group = league)) +
+  geom_line(linewidth = 1.2) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    title = "Are teams Shooting More threes?",
+    y = "3-Point Attempt Rate (% of Total Shots)",
+    x = "Season",
+    color = "League"
+  ) +
+  scale_color_viridis_d() +
+  theme_minimal(base_size = 18) 
 ```
+
+## Shot Distribution
+
+```{r}
+# Compute shot count per zone per league
+zone_counts <- shot_df |>
+  count(league, shot_zone) |>
+  group_by(league) |>
+  mutate(shot_pct = n / sum(n) * 100)  # % of shots from that zone
+
+# Join back so every point knows its zone's shot %
+shot_df <- shot_df |>
+  left_join(zone_counts, by = c("league", "shot_zone"))
+
+# Plot color by shot_pct, increase point size to fill zones visually
+ggplot(shot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = shot_pct)) +
+  geom_point(size = 1.1, alpha = 0.8) +
+  facet_wrap(~league) +
+  scale_color_gradient(
+    name = "% of Shots",
+    low = "#fde8e8",
+    high = "#8b0000"
+  ) + 
+  coord_fixed() +
+  theme_minimal(base_size = 24) +
+  labs(
+    title = "Shot Distribution by Zone",
+    x = NULL, y = NULL
+  )
+```
+
+## Efficiency 
+
+```{r}
+zone_pts <- shot_df |>
+  group_by(league, shot_zone) |>
+  summarise(pts_per_shot = mean(shot_outcome * pts_value, na.rm = TRUE), .groups = "drop")
+
+shot_df <- shot_df |>
+  left_join(zone_pts, by = c("league", "shot_zone"))
+
+ggplot(shot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = pts_per_shot)) +
+  geom_point(size = 1.1, alpha = 0.8) +
+  facet_wrap(~league) +
+  scale_color_gradient(
+    name = "Pts/Shot",
+    low = "#fde8e8",
+    high = "#8b0000"
+  ) +
+  coord_fixed() +
+  theme_minimal(base_size = 24) +
+  labs(
+    title = "Points per Shot by Zone",
+    x = NULL, y = NULL
+  )
+```
+
