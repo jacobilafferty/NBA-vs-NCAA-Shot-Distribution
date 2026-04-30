@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "The Three Point Revolution: NBA vs NCAA"
 format: gfm
 editor: visual
 ---
@@ -15,6 +15,140 @@ I used play-by-play data from the 2025 NBA and NCAA seasons sourced from the hoo
 - Does it generate more efficient offense?
 
 ### Plots
+
+```{r}
+#| message: false
+#| warning: false
+
+nba_raw <- hoopR::load_nba_pbp(seasons = 2025)
+ncaa_raw <- hoopR::load_mbb_pbp(seasons = 2025)
+
+# filter for only shooting plays
+nba_shots <- nba_raw |> filter(shooting_play == TRUE, 
+                               !str_detect(tolower(type_text), "free throw"))
+ncaa_shots <- ncaa_raw |> filter(shooting_play == TRUE,
+                                 !str_detect(tolower(type_text), "freethrow"))
+
+# clean nba data
+nba_clean <- nba_shots |>
+  # Filter for the half-court
+  filter(abs(coordinate_x) <= 47 & abs(coordinate_y) <= 25) |>
+  filter(!str_detect(home_team_name, "Team")) |> # filters out all star teams
+  mutate(
+    league = "NBA",
+    shot_outcome = scoring_play,
+    team_name = if_else(team_id == home_team_id, home_team_name, away_team_name),
+    pts_value = if_else(str_detect(tolower(text), "three point"), 3, 2),
+    
+    # Distance from the hoop at (41.75, 0)
+    shot_dist = sqrt((abs(coordinate_x) - 41.75)^2 + coordinate_y^2),
+    # Depth from baseline 
+    court_depth = 47 - abs(coordinate_x),
+    # Width from center
+    court_width = coordinate_y,
+    
+    
+    # make the court zones
+    shot_zone = case_when(
+      shot_dist <= 4 ~ "Rim",
+      shot_dist > 4 & shot_dist <= 14 & abs(court_width) <= 8 ~ "Paint",
+      
+      # 3-Pointers
+      pts_value == 3 & court_depth <= 14 & court_width < 0 ~ "Left Corner 3",
+      pts_value == 3 & court_depth <= 14 & court_width >= 0 ~ "Right Corner 3",
+      pts_value == 3 & abs(court_width) <= 8 ~ "Top of the Key 3",
+      pts_value == 3 & court_width < -8 ~ "Left Wing 3",
+      pts_value == 3 & court_width > 8 ~ "Right Wing 3",
+      
+      # Mid-Range
+      pts_value == 2 & court_depth <= 14 & court_width < -8 ~ "Left Corner Mid",
+      pts_value == 2 & court_depth <= 14 & court_width > 8 ~ "Right Corner Mid",
+      pts_value == 2 & abs(court_width) <= 8 ~ "Mid-Range Center",
+      pts_value == 2 & court_depth > 14 & court_width < -8 ~ "Mid-Range Left",
+      pts_value == 2 & court_depth > 14 & court_width > 8 ~ "Right Wing Mid",
+      
+      TRUE ~ "Other"
+    )
+  ) |>
+  select(athlete_id_1, league, team_name, coordinate_x, coordinate_y, shot_outcome, pts_value, shot_zone)
+
+
+# lets keep only the top 100 ncaa teams
+top_100 <- c(
+  "Houston", "UConn", "Purdue", "Arizona", "Auburn", "Iowa State", "Tennessee", 
+  "North Carolina", "Alabama", "Duke", "Creighton", "BYU", "Illinois", 
+  "Marquette", "Baylor", "Saint Mary's", "Gonzaga", "Kentucky", "Kansas", 
+  "San Diego State", "Wisconsin", "New Mexico", "Dayton", "Michigan State", 
+  "Colorado", "Boise State", "Texas Tech", "Indiana State", "Florida", 
+  "Texas", "Mississippi State", "St. John's", "Nebraska", "Nevada", "Clemson", 
+  "Colorado State", "Cincinnati", "Utah State", "Florida Atlantic", "Pittsburgh", 
+  "Villanova", "TCU", "Wake Forest", "Washington State", "Texas A&M", 
+  "Oklahoma", "Drake", "Utah", "Ohio State", "Grand Canyon", "South Carolina", 
+  "James Madison", "Northwestern", "Virginia", "Princeton", "McNeese", 
+  "Bradley", "Providence", "Oregon", "Virginia Tech", "UCF", "Iowa", 
+  "NC State", "Xavier", "SMU", "San Francisco", "Seton Hall", "Butler", 
+  "Washington", "Kansas State", "VCU", "App State", "Richmond", "Samford", 
+  "Memphis", "UNLV", "UC Irvine", "South Florida", "North Texas", "Duquesne", 
+  "Boston College", "Maryland", "Yale", "Syracuse", "Loyola Chicago", 
+  "Penn State", "St. Bonaventure", "USC", "Minnesota", "Ole Miss", 
+  "Massachusetts", "Saint Joseph's", "George Mason", "LSU", "Cornell", 
+  "Florida State", "Charleston", "Indiana", "Louisiana Tech", "Georgia"
+)
+
+# clean ncaa data
+ncaa_clean <- ncaa_shots |>
+  filter(abs(coordinate_x) <= 47 & abs(coordinate_y) <= 25) |>
+  mutate(
+    league = "NCAA",
+    shot_outcome = scoring_play,
+    team_name = if_else(team_id == home_team_id, home_team_name, away_team_name),
+    pts_value = score_value,
+    
+    
+    shot_dist = sqrt((abs(coordinate_x) - 41.75)^2 + coordinate_y^2),
+    court_depth = 47 - abs(coordinate_x),
+    court_width = coordinate_y,
+    
+    # zones
+    shot_zone = case_when(
+      shot_dist <= 4 ~ "Rim",
+      shot_dist > 4 & shot_dist <= 14 & abs(court_width) <= 6 ~ "Paint",
+      
+      # 3-Pointers
+      pts_value == 3 & court_depth <= 9.25 & court_width < 0 ~ "Left Corner 3",
+      pts_value == 3 & court_depth <= 9.25 & court_width >= 0 ~ "Right Corner 3",
+      pts_value == 3 & abs(court_width) <= 8 ~ "Top of the Key 3",
+      pts_value == 3 & court_width < -8 ~ "Left Wing 3",
+      pts_value == 3 & court_width > 8 ~ "Right Wing 3",
+      
+      # Mid-Range
+      pts_value == 2 & court_depth <= 9.25 & court_width < -6 ~ "Left Corner Mid",
+      pts_value == 2 & court_depth <= 9.25 & court_width > 6 ~ "Right Corner Mid",
+      pts_value == 2 & abs(court_width) <= 8 ~ "Mid-Range Center",
+      pts_value == 2 & court_depth > 9.25 & court_width < -8 ~ "Mid-Range Left",
+      pts_value == 2 & court_depth > 9.25 & court_width > 8 ~ "Right Wing Mid",
+      
+      TRUE ~ "Other"
+    )
+  ) |>
+  filter(team_name %in% top_100) |>
+  select(athlete_id_1, league, team_name, coordinate_x, coordinate_y, court_width, court_depth, shot_outcome, pts_value, shot_zone)
+
+# combine nba and ncaa into 1 df 
+shot_df <- bind_rows(nba_clean, ncaa_clean)
+
+# look at some stats per zone
+zone_efficiency <- shot_df |>
+  group_by(league, shot_zone) |>
+  summarise(
+    shots_taken = n(),
+    fg_pct = mean(shot_outcome),
+    points_per_shot = mean(shot_outcome * pts_value)
+  ) |>
+  arrange(shot_zone, league) |>
+  mutate(shot_zone = factor(shot_zone, levels = c("Rim", "Paint", "Left Corner Mid", "Right Corner Mid", "Mid-Range Left", "Right Wing Mid", "Mid-Range Center", "Left Corner 3", "Right Corner 3", "Left Wing 3", "Right Wing 3", "Top of the Key 3")))
+```
+
 
 Here are a couple plots I used to help explore my research questions.
 
