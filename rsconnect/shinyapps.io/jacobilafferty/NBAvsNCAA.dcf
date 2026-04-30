@@ -1,0 +1,13 @@
+name: NBAvsNCAA
+title: NBAvsNCAA
+username: jacobilafferty
+account: jacobilafferty
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 17267561
+bundleId: 11930445
+url: https://jacobilafferty.shinyapps.io/NBAvsNCAA/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .RData|.RDataTmp|final_presentation.html|final_presentation.qmd|index.html|index.qmd|README.md|README.qmd|final_presentation_files|index_files

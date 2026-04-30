@@ -1,7 +1,10 @@
 ---
-title: "index"
+title: "The Three Point Revolution: NBA vs NCAA"
 format: html
 ---
+
+# Abstract
+This project examines the three point revolution in basketball at both the NBA and NCAA levels by examining shot selection and efficiency. I'm using play by play data from the 2025 season, pulled from the hoopR R package. I categorize the court into 12 different zones to observe shot distribution, field goal percentage, and points per shot. I found that three point rates have been steadily rising for both leagues over the past decade, but more dramatically for the NBA. Further analysis indicates that this is the correct approach for both leagues, and three pointers generate much more value than mid range shots. Teams in both leagues, but especially the NCAA, should continue to look for three point attempts, and try to minimize mid range shots. I've also included a shiny app that allows users to compare these things across different matchups of both NBA and NCAA teams or players.
 
 # Introduction
 Over the past decade, basketball has been going through a shift, largely due to analytics. Teams have been viewing the three point shot as more and more valuable, while the mid-range slowly becomes a lost art. Throughout basketball history, people have always been encouraged to take a step in if they have a better chance of making the shot. However, as of late the game has shifted into the idea of getting as many threes and layups as possible.
@@ -18,7 +21,11 @@ To tackle these questions, I'm going to be breaking the court into 12 hotzones, 
 To begin exploring how shot distribution has evolved, let's first find out if this three point revolution is as drastic as people say. 
 
 ```{r}
-
+#| message: false
+#| warning: false
+library(tidyverse)
+library(hoopR)
+library(ggplot2)
 # Load 10 years of Team Box Scores - because it's smaller than pbp data 
 seasons <- 2016:2025
 
@@ -65,9 +72,8 @@ I also found it interesting how the NCAA three point rate a decade ago was much 
 
 
 ```{r}
-library(tidyverse)
-library(hoopR)
-library(ggplot2)
+#| message: false
+#| warning: false
 
 nba_raw <- hoopR::load_nba_pbp(seasons = 2025)
 ncaa_raw <- hoopR::load_mbb_pbp(seasons = 2025)
@@ -297,10 +303,6 @@ ggplot(shot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = pts_pe
 
 When looking at points per shot across the 12 zones, the picture changes dramatically. Shots at the rim are obviously the most valuable for both leagues, simply because they are so close that field goal percentages are much higher. After that, for both leagues the three point shot is the most valuable. Even threes that aren't from the corner are beating out not only mid range shots, but also shots in the paint. For both leagues, mid range shots are clearly the worst value shot on the court. This is even more of the case for college teams, which much like the last plot depicting field goal percentages, showcases that college teams should be fully embracing this new philosophy of getting up as many threes as possible. 
 
-Overall, from looking at these plots I think we can safely say that trying to prioritize threes and limit mid range shots is the correct strategy for both NBA and NCAA teams. 
-
-# Efficiency
-
 I found the points per shot plot very intriguing, and wanted to get a closer look at some of the things it was depicting. The following plot helps quantify the efficiency gap between leagues for each zone on the court.
 
 ```{r}
@@ -513,80 +515,6 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui, server)
-```
-
-
-```{r}
-# code for a plot
-test_df <- shot_df |> filter(team_name == "Boston", league == "NBA")
-
-total_shots <- nrow(test_df)
-
-zone_stats <- test_df |>
-  group_by(shot_zone) |>
-  summarise(
-    n          = n(),
-    value      = n() / total_shots * 100,
-    low_sample = n() < 15,
-    .groups    = "drop"
-  )
-
-plot_df <- test_df |> left_join(zone_stats, by = "shot_zone")
-
-ggplot(plot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = value)) +
-  geom_point(aes(alpha = if_else(low_sample, 0.15, 0.8)), size = 1.1) +
-  scale_color_gradient(
-    name = "% of Shots",
-    low  = "white", high = "#8b0000"
-  ) +
-  scale_alpha_identity() +
-  coord_fixed() +
-  theme_minimal() +
-  labs(title = "Boston", x = NULL, y = NULL)
-```
-
-```{r}
-# test fg% for boston
-zone_stats <- test_df |>
-  group_by(shot_zone) |>
-  summarise(
-    n          = n(),
-    low_sample = n() < 15,
-    value      = mean(shot_outcome, na.rm = TRUE) * 100,
-    .groups    = "drop"
-  )
-
-plot_df <- test_df |> left_join(zone_stats, by = "shot_zone")
-
-ggplot(plot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = value)) +
-  geom_point(aes(alpha = if_else(low_sample, 0.15, 0.8)), size = 1.1) +
-  scale_color_gradient(name = "FG%", low = "#fde8e8", high = "#8b0000") +
-  scale_alpha_identity() +
-  coord_fixed() +
-  theme_minimal() +
-  labs(title = "Boston", x = NULL, y = NULL)
-```
-
-```{r}
-# test pts per shot
-zone_stats <- test_df |>
-  group_by(shot_zone) |>
-  summarise(
-    n          = n(),
-    low_sample = n() < 15,
-    value      = mean(shot_outcome * pts_value, na.rm = TRUE),
-    .groups    = "drop"
-  )
-
-plot_df <- test_df |> left_join(zone_stats, by = "shot_zone")
-
-ggplot(plot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = value)) +
-  geom_point(aes(alpha = if_else(low_sample, 0.15, 0.8)), size = 1.1) +
-  scale_color_gradient(name = "Pts/Shot", low = "#fde8e8", high = "#8b0000") +
-  scale_alpha_identity() +
-  coord_fixed() +
-  theme_minimal() +
-  labs(title = "Boston", x = NULL, y = NULL)
 ```
 
 # Conclusion
