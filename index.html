@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>index</title>
+<title>The Three Point Revolution: NBA vs NCAA</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -82,7 +82,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">index</h1>
+<h1 class="title">The Three Point Revolution: NBA vs NCAA</h1>
 </div>
 
 
@@ -440,6 +440,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="shiny-app" class="level1">
 <h1>Shiny App</h1>
 <p>While the visualizations above help us examine shot selection and answer our research questions, I wanted to make a shiny app that allows for more exploration. Users can select Either NBA or NCAA teams and players to compare. You can look at all the things we talked about above like their shot distribution, field goal percentage, and points per shot. This can be used to compare different match ups before games, compare college players with their NBA comparisons before a draft, or anything else somebody might be interested in. Zones with fewer than 15 shots will be faded to help indicate small sample sizes, which is sometimes relevant when looking at certain players.</p>
+<p>The code and link to the shiny app can be found below: <a href="https://jacobilafferty.shinyapps.io/NBAvsNCAA/">ShinyApp</a></p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>nba_rosters  <span class="ot">&lt;-</span> hoopR<span class="sc">::</span><span class="fu">load_nba_player_box</span>(<span class="at">seasons =</span> <span class="dv">2025</span>) <span class="sc">|&gt;</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(athlete_id, athlete_display_name) <span class="sc">|&gt;</span> <span class="fu">distinct</span>()</span>
@@ -450,172 +451,173 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>rosters <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(nba_rosters, ncaa_rosters) <span class="sc">|&gt;</span> <span class="fu">distinct</span>()</span>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>shot_df <span class="ot">&lt;-</span> shot_df <span class="sc">|&gt;</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rosters, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"athlete_id_1"</span> <span class="ot">=</span> <span class="st">"athlete_id"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(shiny)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'shiny' was built under R version 4.4.3</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>ui <span class="ot">&lt;-</span> <span class="fu">fluidPage</span>(</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">titlePanel</span>(<span class="st">"NBA vs. NCAA Shot Zone Explorer"</span>),</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sidebarLayout</span>(</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sidebarPanel</span>(</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">radioButtons</span>(<span class="st">"compare_type"</span>, <span class="st">"Compare by:"</span>,</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"Teams"</span>, <span class="st">"Players"</span>)),</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">selectInput</span>(<span class="st">"metric"</span>, <span class="st">"Metric:"</span>,</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"% of Shots"</span> <span class="ot">=</span> <span class="st">"shot_pct"</span>,</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>                              <span class="st">"FG%"</span>         <span class="ot">=</span> <span class="st">"fg_pct"</span>,</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>                              <span class="st">"Pts/Shot"</span>    <span class="ot">=</span> <span class="st">"pts_per_shot"</span>)),</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">hr</span>(),</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">strong</span>(<span class="st">"Selection 1"</span>),</span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">radioButtons</span>(<span class="st">"league1"</span>, <span class="st">"League:"</span>, <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"NBA"</span>, <span class="st">"NCAA"</span>)),</span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">selectizeInput</span>(<span class="st">"selection1"</span>, <span class="st">"Team/Player:"</span>, <span class="at">choices =</span> <span class="cn">NULL</span>),</span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>      <span class="fu">hr</span>(),</span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>      <span class="fu">strong</span>(<span class="st">"Selection 2"</span>),</span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">radioButtons</span>(<span class="st">"league2"</span>, <span class="st">"League:"</span>, <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"NBA"</span>, <span class="st">"NCAA"</span>)),</span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">selectizeInput</span>(<span class="st">"selection2"</span>, <span class="st">"Team/Player:"</span>, <span class="at">choices =</span> <span class="cn">NULL</span>),</span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mainPanel</span>(</span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">fluidRow</span>(</span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>        <span class="fu">column</span>(<span class="dv">6</span>, <span class="fu">plotOutput</span>(<span class="st">"plot1"</span>, <span class="at">height =</span> <span class="st">"500px"</span>)),</span>
-<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>        <span class="fu">column</span>(<span class="dv">6</span>, <span class="fu">plotOutput</span>(<span class="st">"plot2"</span>, <span class="at">height =</span> <span class="st">"500px"</span>))</span>
-<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>server <span class="ot">&lt;-</span> <span class="cf">function</span>(input, output, session) {</span>
-<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>  <span class="co"># when league1 or compare_type changes, update selection1 dropdown</span></span>
-<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">observeEvent</span>(<span class="fu">c</span>(input<span class="sc">$</span>league1, input<span class="sc">$</span>compare_type), {</span>
-<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>    df <span class="ot">&lt;-</span> shot_df <span class="sc">|&gt;</span> <span class="fu">filter</span>(league <span class="sc">==</span> input<span class="sc">$</span>league1)</span>
-<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (input<span class="sc">$</span>compare_type <span class="sc">==</span> <span class="st">"Teams"</span>) {</span>
-<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>      new_choices <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> <span class="fu">distinct</span>(team_name) <span class="sc">|&gt;</span> <span class="fu">pull</span>(team_name) <span class="sc">|&gt;</span> <span class="fu">sort</span>()</span>
-<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>      new_choices <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(athlete_display_name)) <span class="sc">|&gt;</span></span>
-<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>        <span class="fu">distinct</span>(athlete_display_name) <span class="sc">|&gt;</span> <span class="fu">pull</span>(athlete_display_name) <span class="sc">|&gt;</span> <span class="fu">sort</span>()</span>
-<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>    <span class="fu">updateSelectizeInput</span>(<span class="at">inputId =</span> <span class="st">"selection1"</span>, <span class="at">choices =</span> new_choices)</span>
-<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>  <span class="co"># same for selection2</span></span>
-<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">observeEvent</span>(<span class="fu">c</span>(input<span class="sc">$</span>league2, input<span class="sc">$</span>compare_type), {</span>
-<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>    df <span class="ot">&lt;-</span> shot_df <span class="sc">|&gt;</span> <span class="fu">filter</span>(league <span class="sc">==</span> input<span class="sc">$</span>league2)</span>
-<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (input<span class="sc">$</span>compare_type <span class="sc">==</span> <span class="st">"Teams"</span>) {</span>
-<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>      new_choices <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> <span class="fu">distinct</span>(team_name) <span class="sc">|&gt;</span> <span class="fu">pull</span>(team_name) <span class="sc">|&gt;</span> <span class="fu">sort</span>()</span>
-<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>      new_choices <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(athlete_display_name)) <span class="sc">|&gt;</span></span>
-<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>        <span class="fu">distinct</span>(athlete_display_name) <span class="sc">|&gt;</span> <span class="fu">pull</span>(athlete_display_name) <span class="sc">|&gt;</span> <span class="fu">sort</span>()</span>
-<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>    <span class="fu">updateSelectizeInput</span>(<span class="at">inputId =</span> <span class="st">"selection2"</span>, <span class="at">choices =</span> new_choices)</span>
-<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a>  <span class="co"># reactive 1</span></span>
-<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>  reactive_df1 <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
-<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a>    df <span class="ot">&lt;-</span> shot_df <span class="sc">|&gt;</span> <span class="fu">filter</span>(league <span class="sc">==</span> input<span class="sc">$</span>league1)</span>
-<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (input<span class="sc">$</span>compare_type <span class="sc">==</span> <span class="st">"Teams"</span>) {</span>
-<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a>      df <span class="sc">|&gt;</span> <span class="fu">filter</span>(team_name <span class="sc">==</span> input<span class="sc">$</span>selection1)</span>
-<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a>      df <span class="sc">|&gt;</span> <span class="fu">filter</span>(athlete_display_name <span class="sc">==</span> input<span class="sc">$</span>selection1)</span>
-<span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a>  <span class="co"># reactive 2</span></span>
-<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a>  reactive_df2 <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
-<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a>    df <span class="ot">&lt;-</span> shot_df <span class="sc">|&gt;</span> <span class="fu">filter</span>(league <span class="sc">==</span> input<span class="sc">$</span>league2)</span>
-<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (input<span class="sc">$</span>compare_type <span class="sc">==</span> <span class="st">"Teams"</span>) {</span>
-<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a>      df <span class="sc">|&gt;</span> <span class="fu">filter</span>(team_name <span class="sc">==</span> input<span class="sc">$</span>selection2)</span>
-<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a>      df <span class="sc">|&gt;</span> <span class="fu">filter</span>(athlete_display_name <span class="sc">==</span> input<span class="sc">$</span>selection2)</span>
-<span id="cb10-73"><a href="#cb10-73" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb10-74"><a href="#cb10-74" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-76"><a href="#cb10-76" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-77"><a href="#cb10-77" aria-hidden="true" tabindex="-1"></a>  <span class="co"># plot 1</span></span>
-<span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a>  output<span class="sc">$</span>plot1 <span class="ot">&lt;-</span> <span class="fu">renderPlot</span>({</span>
-<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a>    <span class="co"># labels for plot titles</span></span>
-<span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a>    metric_label <span class="ot">&lt;-</span> <span class="fu">case_when</span>(</span>
-<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a>      input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"shot_pct"</span> <span class="sc">~</span> <span class="st">"% of Total Shots"</span>,</span>
-<span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a>      input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"fg_pct"</span> <span class="sc">~</span> <span class="st">"FG%"</span>,</span>
-<span id="cb10-84"><a href="#cb10-84" aria-hidden="true" tabindex="-1"></a>      input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"pts_per_shot"</span> <span class="sc">~</span> <span class="st">"Expected Points Per Shot"</span></span>
-<span id="cb10-85"><a href="#cb10-85" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-87"><a href="#cb10-87" aria-hidden="true" tabindex="-1"></a>    zone_stats <span class="ot">&lt;-</span> <span class="fu">reactive_df1</span>() <span class="sc">|&gt;</span></span>
-<span id="cb10-88"><a href="#cb10-88" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(shot_zone) <span class="sc">|&gt;</span></span>
-<span id="cb10-89"><a href="#cb10-89" aria-hidden="true" tabindex="-1"></a>      <span class="fu">summarise</span>(</span>
-<span id="cb10-90"><a href="#cb10-90" aria-hidden="true" tabindex="-1"></a>        <span class="at">n =</span> <span class="fu">n</span>(),</span>
-<span id="cb10-91"><a href="#cb10-91" aria-hidden="true" tabindex="-1"></a>        <span class="at">low_sample  =</span> <span class="fu">n</span>() <span class="sc">&lt;</span> <span class="dv">15</span>,</span>
-<span id="cb10-92"><a href="#cb10-92" aria-hidden="true" tabindex="-1"></a>        <span class="at">fg_pct =</span> <span class="fu">mean</span>(shot_outcome, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span>,</span>
-<span id="cb10-93"><a href="#cb10-93" aria-hidden="true" tabindex="-1"></a>        <span class="at">pts_per_shot =</span> <span class="fu">mean</span>(shot_outcome <span class="sc">*</span> pts_value, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb10-94"><a href="#cb10-94" aria-hidden="true" tabindex="-1"></a>        <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb10-95"><a href="#cb10-95" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">|&gt;</span></span>
-<span id="cb10-96"><a href="#cb10-96" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(</span>
-<span id="cb10-97"><a href="#cb10-97" aria-hidden="true" tabindex="-1"></a>        <span class="at">shot_pct =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n) <span class="sc">*</span> <span class="dv">100</span>,</span>
-<span id="cb10-98"><a href="#cb10-98" aria-hidden="true" tabindex="-1"></a>        <span class="at">value =</span> <span class="cf">if</span> (input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"shot_pct"</span>) shot_pct</span>
-<span id="cb10-99"><a href="#cb10-99" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span> <span class="cf">if</span> (input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"fg_pct"</span>) fg_pct</span>
-<span id="cb10-100"><a href="#cb10-100" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span> pts_per_shot</span>
-<span id="cb10-101"><a href="#cb10-101" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb10-102"><a href="#cb10-102" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-103"><a href="#cb10-103" aria-hidden="true" tabindex="-1"></a>    plot_df <span class="ot">&lt;-</span> <span class="fu">reactive_df1</span>() <span class="sc">|&gt;</span> <span class="fu">left_join</span>(zone_stats, <span class="at">by =</span> <span class="st">"shot_zone"</span>)</span>
-<span id="cb10-104"><a href="#cb10-104" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-105"><a href="#cb10-105" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(plot_df, <span class="fu">aes</span>(<span class="at">x =</span> coordinate_y, <span class="at">y =</span> <span class="dv">47</span> <span class="sc">-</span> <span class="fu">abs</span>(coordinate_x), <span class="at">color =</span> value)) <span class="sc">+</span></span>
-<span id="cb10-106"><a href="#cb10-106" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">alpha =</span> <span class="fu">if_else</span>(low_sample, <span class="fl">0.15</span>, <span class="fl">0.8</span>)), <span class="at">size =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
-<span id="cb10-107"><a href="#cb10-107" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_color_gradient</span>(<span class="at">name =</span> input<span class="sc">$</span>metric, <span class="at">low =</span> <span class="st">"#fde8e8"</span>, <span class="at">high =</span> <span class="st">"#8b0000"</span>) <span class="sc">+</span></span>
-<span id="cb10-108"><a href="#cb10-108" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_alpha_identity</span>() <span class="sc">+</span></span>
-<span id="cb10-109"><a href="#cb10-109" aria-hidden="true" tabindex="-1"></a>      <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
-<span id="cb10-110"><a href="#cb10-110" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb10-111"><a href="#cb10-111" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(<span class="at">title =</span> glue<span class="sc">::</span><span class="fu">glue</span>(input<span class="sc">$</span>selection1, <span class="st">" "</span>, metric_label), </span>
-<span id="cb10-112"><a href="#cb10-112" aria-hidden="true" tabindex="-1"></a>           <span class="at">x =</span> <span class="cn">NULL</span>, </span>
-<span id="cb10-113"><a href="#cb10-113" aria-hidden="true" tabindex="-1"></a>           <span class="at">y =</span> <span class="cn">NULL</span>,</span>
-<span id="cb10-114"><a href="#cb10-114" aria-hidden="true" tabindex="-1"></a>           <span class="at">caption =</span> <span class="st">"Zones with less than 15 shots will be faded."</span>)</span>
-<span id="cb10-115"><a href="#cb10-115" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb10-116"><a href="#cb10-116" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-117"><a href="#cb10-117" aria-hidden="true" tabindex="-1"></a>  <span class="co"># plot 2</span></span>
-<span id="cb10-118"><a href="#cb10-118" aria-hidden="true" tabindex="-1"></a>  output<span class="sc">$</span>plot2 <span class="ot">&lt;-</span> <span class="fu">renderPlot</span>({</span>
-<span id="cb10-119"><a href="#cb10-119" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb10-120"><a href="#cb10-120" aria-hidden="true" tabindex="-1"></a>    <span class="co"># labels for plot titles</span></span>
-<span id="cb10-121"><a href="#cb10-121" aria-hidden="true" tabindex="-1"></a>    metric_label <span class="ot">&lt;-</span> <span class="fu">case_when</span>(</span>
-<span id="cb10-122"><a href="#cb10-122" aria-hidden="true" tabindex="-1"></a>      input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"shot_pct"</span> <span class="sc">~</span> <span class="st">"% of Total Shots"</span>,</span>
-<span id="cb10-123"><a href="#cb10-123" aria-hidden="true" tabindex="-1"></a>      input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"fg_pct"</span> <span class="sc">~</span> <span class="st">"FG%"</span>,</span>
-<span id="cb10-124"><a href="#cb10-124" aria-hidden="true" tabindex="-1"></a>      input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"pts_per_shot"</span> <span class="sc">~</span> <span class="st">"Expected Points per Shot"</span></span>
-<span id="cb10-125"><a href="#cb10-125" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb10-126"><a href="#cb10-126" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-127"><a href="#cb10-127" aria-hidden="true" tabindex="-1"></a>    zone_stats <span class="ot">&lt;-</span> <span class="fu">reactive_df2</span>() <span class="sc">|&gt;</span></span>
-<span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(shot_zone) <span class="sc">|&gt;</span></span>
-<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a>      <span class="fu">summarise</span>(</span>
-<span id="cb10-130"><a href="#cb10-130" aria-hidden="true" tabindex="-1"></a>        <span class="at">n =</span> <span class="fu">n</span>(),</span>
-<span id="cb10-131"><a href="#cb10-131" aria-hidden="true" tabindex="-1"></a>        <span class="at">low_sample =</span> <span class="fu">n</span>() <span class="sc">&lt;</span> <span class="dv">15</span>,</span>
-<span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a>        <span class="at">fg_pct =</span> <span class="fu">mean</span>(shot_outcome, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span>,</span>
-<span id="cb10-133"><a href="#cb10-133" aria-hidden="true" tabindex="-1"></a>        <span class="at">pts_per_shot =</span> <span class="fu">mean</span>(shot_outcome <span class="sc">*</span> pts_value, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb10-134"><a href="#cb10-134" aria-hidden="true" tabindex="-1"></a>        <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">|&gt;</span></span>
-<span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(</span>
-<span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a>        <span class="at">shot_pct =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n) <span class="sc">*</span> <span class="dv">100</span>,</span>
-<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a>        <span class="at">value =</span> <span class="cf">if</span> (input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"shot_pct"</span>) shot_pct</span>
-<span id="cb10-139"><a href="#cb10-139" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span> <span class="cf">if</span> (input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"fg_pct"</span>) fg_pct</span>
-<span id="cb10-140"><a href="#cb10-140" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span> pts_per_shot</span>
-<span id="cb10-141"><a href="#cb10-141" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb10-142"><a href="#cb10-142" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-143"><a href="#cb10-143" aria-hidden="true" tabindex="-1"></a>  plot_df <span class="ot">&lt;-</span> <span class="fu">reactive_df2</span>() <span class="sc">|&gt;</span> <span class="fu">left_join</span>(zone_stats, <span class="at">by =</span> <span class="st">"shot_zone"</span>)</span>
-<span id="cb10-144"><a href="#cb10-144" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-145"><a href="#cb10-145" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(plot_df, <span class="fu">aes</span>(<span class="at">x =</span> coordinate_y, <span class="at">y =</span> <span class="dv">47</span> <span class="sc">-</span> <span class="fu">abs</span>(coordinate_x), <span class="at">color =</span> value)) <span class="sc">+</span></span>
-<span id="cb10-146"><a href="#cb10-146" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">alpha =</span> <span class="fu">if_else</span>(low_sample, <span class="fl">0.15</span>, <span class="fl">0.8</span>)), <span class="at">size =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
-<span id="cb10-147"><a href="#cb10-147" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_gradient</span>(<span class="at">name =</span> input<span class="sc">$</span>metric, <span class="at">low =</span> <span class="st">"#fde8e8"</span>, <span class="at">high =</span> <span class="st">"#8b0000"</span>) <span class="sc">+</span></span>
-<span id="cb10-148"><a href="#cb10-148" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_alpha_identity</span>() <span class="sc">+</span></span>
-<span id="cb10-149"><a href="#cb10-149" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
-<span id="cb10-150"><a href="#cb10-150" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb10-151"><a href="#cb10-151" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> glue<span class="sc">::</span><span class="fu">glue</span>(input<span class="sc">$</span>selection2, <span class="st">" "</span>, metric_label), </span>
-<span id="cb10-152"><a href="#cb10-152" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="cn">NULL</span>, </span>
-<span id="cb10-153"><a href="#cb10-153" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> <span class="cn">NULL</span>,</span>
-<span id="cb10-154"><a href="#cb10-154" aria-hidden="true" tabindex="-1"></a>         <span class="at">caption =</span> <span class="st">"Zones with less than 15 shots will be faded."</span>)</span>
-<span id="cb10-155"><a href="#cb10-155" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb10-156"><a href="#cb10-156" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-157"><a href="#cb10-157" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb10-158"><a href="#cb10-158" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-159"><a href="#cb10-159" aria-hidden="true" tabindex="-1"></a><span class="fu">shinyApp</span>(ui, server)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rosters, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"athlete_id_1"</span> <span class="ot">=</span> <span class="st">"athlete_id"</span>))</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co"># change to csv for shinyapp</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(shot_df, <span class="st">"shot_df.csv"</span>)</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(shiny)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>ui <span class="ot">&lt;-</span> <span class="fu">fluidPage</span>(</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">titlePanel</span>(<span class="st">"NBA vs. NCAA Shot Zone Explorer"</span>),</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sidebarLayout</span>(</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sidebarPanel</span>(</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">radioButtons</span>(<span class="st">"compare_type"</span>, <span class="st">"Compare by:"</span>,</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>                   <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"Teams"</span>, <span class="st">"Players"</span>)),</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">selectInput</span>(<span class="st">"metric"</span>, <span class="st">"Metric:"</span>,</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>                  <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"% of Shots"</span> <span class="ot">=</span> <span class="st">"shot_pct"</span>,</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>                              <span class="st">"FG%"</span>         <span class="ot">=</span> <span class="st">"fg_pct"</span>,</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>                              <span class="st">"Pts/Shot"</span>    <span class="ot">=</span> <span class="st">"pts_per_shot"</span>)),</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>      <span class="fu">hr</span>(),</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">strong</span>(<span class="st">"Selection 1"</span>),</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>      <span class="fu">radioButtons</span>(<span class="st">"league1"</span>, <span class="st">"League:"</span>, <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"NBA"</span>, <span class="st">"NCAA"</span>)),</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">selectizeInput</span>(<span class="st">"selection1"</span>, <span class="st">"Team/Player:"</span>, <span class="at">choices =</span> <span class="cn">NULL</span>),</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">hr</span>(),</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>      <span class="fu">strong</span>(<span class="st">"Selection 2"</span>),</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>      <span class="fu">radioButtons</span>(<span class="st">"league2"</span>, <span class="st">"League:"</span>, <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"NBA"</span>, <span class="st">"NCAA"</span>)),</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">selectizeInput</span>(<span class="st">"selection2"</span>, <span class="st">"Team/Player:"</span>, <span class="at">choices =</span> <span class="cn">NULL</span>),</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mainPanel</span>(</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>      <span class="fu">fluidRow</span>(</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>        <span class="fu">column</span>(<span class="dv">6</span>, <span class="fu">plotOutput</span>(<span class="st">"plot1"</span>, <span class="at">height =</span> <span class="st">"500px"</span>)),</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>        <span class="fu">column</span>(<span class="dv">6</span>, <span class="fu">plotOutput</span>(<span class="st">"plot2"</span>, <span class="at">height =</span> <span class="st">"500px"</span>))</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>server <span class="ot">&lt;-</span> <span class="cf">function</span>(input, output, session) {</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>  <span class="co"># when league1 or compare_type changes, update selection1 dropdown</span></span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">observeEvent</span>(<span class="fu">c</span>(input<span class="sc">$</span>league1, input<span class="sc">$</span>compare_type), {</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>    df <span class="ot">&lt;-</span> shot_df <span class="sc">|&gt;</span> <span class="fu">filter</span>(league <span class="sc">==</span> input<span class="sc">$</span>league1)</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (input<span class="sc">$</span>compare_type <span class="sc">==</span> <span class="st">"Teams"</span>) {</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>      new_choices <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> <span class="fu">distinct</span>(team_name) <span class="sc">|&gt;</span> <span class="fu">pull</span>(team_name) <span class="sc">|&gt;</span> <span class="fu">sort</span>()</span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>      new_choices <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(athlete_display_name)) <span class="sc">|&gt;</span></span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>        <span class="fu">distinct</span>(athlete_display_name) <span class="sc">|&gt;</span> <span class="fu">pull</span>(athlete_display_name) <span class="sc">|&gt;</span> <span class="fu">sort</span>()</span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>    <span class="fu">updateSelectizeInput</span>(<span class="at">inputId =</span> <span class="st">"selection1"</span>, <span class="at">choices =</span> new_choices)</span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>  <span class="co"># same for selection2</span></span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a>  <span class="fu">observeEvent</span>(<span class="fu">c</span>(input<span class="sc">$</span>league2, input<span class="sc">$</span>compare_type), {</span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a>    df <span class="ot">&lt;-</span> shot_df <span class="sc">|&gt;</span> <span class="fu">filter</span>(league <span class="sc">==</span> input<span class="sc">$</span>league2)</span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (input<span class="sc">$</span>compare_type <span class="sc">==</span> <span class="st">"Teams"</span>) {</span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a>      new_choices <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> <span class="fu">distinct</span>(team_name) <span class="sc">|&gt;</span> <span class="fu">pull</span>(team_name) <span class="sc">|&gt;</span> <span class="fu">sort</span>()</span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a>      new_choices <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(athlete_display_name)) <span class="sc">|&gt;</span></span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a>        <span class="fu">distinct</span>(athlete_display_name) <span class="sc">|&gt;</span> <span class="fu">pull</span>(athlete_display_name) <span class="sc">|&gt;</span> <span class="fu">sort</span>()</span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a>    <span class="fu">updateSelectizeInput</span>(<span class="at">inputId =</span> <span class="st">"selection2"</span>, <span class="at">choices =</span> new_choices)</span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a>  <span class="co"># reactive 1</span></span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a>  reactive_df1 <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a>    df <span class="ot">&lt;-</span> shot_df <span class="sc">|&gt;</span> <span class="fu">filter</span>(league <span class="sc">==</span> input<span class="sc">$</span>league1)</span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (input<span class="sc">$</span>compare_type <span class="sc">==</span> <span class="st">"Teams"</span>) {</span>
+<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a>      df <span class="sc">|&gt;</span> <span class="fu">filter</span>(team_name <span class="sc">==</span> input<span class="sc">$</span>selection1)</span>
+<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a>      df <span class="sc">|&gt;</span> <span class="fu">filter</span>(athlete_display_name <span class="sc">==</span> input<span class="sc">$</span>selection1)</span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a>  <span class="co"># reactive 2</span></span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a>  reactive_df2 <span class="ot">&lt;-</span> <span class="fu">reactive</span>({</span>
+<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a>    df <span class="ot">&lt;-</span> shot_df <span class="sc">|&gt;</span> <span class="fu">filter</span>(league <span class="sc">==</span> input<span class="sc">$</span>league2)</span>
+<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (input<span class="sc">$</span>compare_type <span class="sc">==</span> <span class="st">"Teams"</span>) {</span>
+<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a>      df <span class="sc">|&gt;</span> <span class="fu">filter</span>(team_name <span class="sc">==</span> input<span class="sc">$</span>selection2)</span>
+<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a>      df <span class="sc">|&gt;</span> <span class="fu">filter</span>(athlete_display_name <span class="sc">==</span> input<span class="sc">$</span>selection2)</span>
+<span id="cb7-90"><a href="#cb7-90" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb7-91"><a href="#cb7-91" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb7-92"><a href="#cb7-92" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-93"><a href="#cb7-93" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a>  <span class="co"># plot 1</span></span>
+<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a>  output<span class="sc">$</span>plot1 <span class="ot">&lt;-</span> <span class="fu">renderPlot</span>({</span>
+<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a>    <span class="co"># labels for plot titles</span></span>
+<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a>    metric_label <span class="ot">&lt;-</span> <span class="fu">case_when</span>(</span>
+<span id="cb7-99"><a href="#cb7-99" aria-hidden="true" tabindex="-1"></a>      input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"shot_pct"</span> <span class="sc">~</span> <span class="st">"% of Total Shots"</span>,</span>
+<span id="cb7-100"><a href="#cb7-100" aria-hidden="true" tabindex="-1"></a>      input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"fg_pct"</span> <span class="sc">~</span> <span class="st">"FG%"</span>,</span>
+<span id="cb7-101"><a href="#cb7-101" aria-hidden="true" tabindex="-1"></a>      input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"pts_per_shot"</span> <span class="sc">~</span> <span class="st">"Expected Points Per Shot"</span></span>
+<span id="cb7-102"><a href="#cb7-102" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-103"><a href="#cb7-103" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-104"><a href="#cb7-104" aria-hidden="true" tabindex="-1"></a>    zone_stats <span class="ot">&lt;-</span> <span class="fu">reactive_df1</span>() <span class="sc">|&gt;</span></span>
+<span id="cb7-105"><a href="#cb7-105" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(shot_zone) <span class="sc">|&gt;</span></span>
+<span id="cb7-106"><a href="#cb7-106" aria-hidden="true" tabindex="-1"></a>      <span class="fu">summarise</span>(</span>
+<span id="cb7-107"><a href="#cb7-107" aria-hidden="true" tabindex="-1"></a>        <span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb7-108"><a href="#cb7-108" aria-hidden="true" tabindex="-1"></a>        <span class="at">low_sample  =</span> <span class="fu">n</span>() <span class="sc">&lt;</span> <span class="dv">15</span>,</span>
+<span id="cb7-109"><a href="#cb7-109" aria-hidden="true" tabindex="-1"></a>        <span class="at">fg_pct =</span> <span class="fu">mean</span>(shot_outcome, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb7-110"><a href="#cb7-110" aria-hidden="true" tabindex="-1"></a>        <span class="at">pts_per_shot =</span> <span class="fu">mean</span>(shot_outcome <span class="sc">*</span> pts_value, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb7-111"><a href="#cb7-111" aria-hidden="true" tabindex="-1"></a>        <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb7-112"><a href="#cb7-112" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">|&gt;</span></span>
+<span id="cb7-113"><a href="#cb7-113" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(</span>
+<span id="cb7-114"><a href="#cb7-114" aria-hidden="true" tabindex="-1"></a>        <span class="at">shot_pct =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n) <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb7-115"><a href="#cb7-115" aria-hidden="true" tabindex="-1"></a>        <span class="at">value =</span> <span class="cf">if</span> (input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"shot_pct"</span>) shot_pct</span>
+<span id="cb7-116"><a href="#cb7-116" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span> <span class="cf">if</span> (input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"fg_pct"</span>) fg_pct</span>
+<span id="cb7-117"><a href="#cb7-117" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span> pts_per_shot</span>
+<span id="cb7-118"><a href="#cb7-118" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb7-119"><a href="#cb7-119" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-120"><a href="#cb7-120" aria-hidden="true" tabindex="-1"></a>    plot_df <span class="ot">&lt;-</span> <span class="fu">reactive_df1</span>() <span class="sc">|&gt;</span> <span class="fu">left_join</span>(zone_stats, <span class="at">by =</span> <span class="st">"shot_zone"</span>)</span>
+<span id="cb7-121"><a href="#cb7-121" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-122"><a href="#cb7-122" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(plot_df, <span class="fu">aes</span>(<span class="at">x =</span> coordinate_y, <span class="at">y =</span> <span class="dv">47</span> <span class="sc">-</span> <span class="fu">abs</span>(coordinate_x), <span class="at">color =</span> value)) <span class="sc">+</span></span>
+<span id="cb7-123"><a href="#cb7-123" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">alpha =</span> <span class="fu">if_else</span>(low_sample, <span class="fl">0.15</span>, <span class="fl">0.8</span>)), <span class="at">size =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
+<span id="cb7-124"><a href="#cb7-124" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_color_gradient</span>(<span class="at">name =</span> input<span class="sc">$</span>metric, <span class="at">low =</span> <span class="st">"#fde8e8"</span>, <span class="at">high =</span> <span class="st">"#8b0000"</span>) <span class="sc">+</span></span>
+<span id="cb7-125"><a href="#cb7-125" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_alpha_identity</span>() <span class="sc">+</span></span>
+<span id="cb7-126"><a href="#cb7-126" aria-hidden="true" tabindex="-1"></a>      <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
+<span id="cb7-127"><a href="#cb7-127" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb7-128"><a href="#cb7-128" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(<span class="at">title =</span> glue<span class="sc">::</span><span class="fu">glue</span>(input<span class="sc">$</span>selection1, <span class="st">" "</span>, metric_label), </span>
+<span id="cb7-129"><a href="#cb7-129" aria-hidden="true" tabindex="-1"></a>           <span class="at">x =</span> <span class="cn">NULL</span>, </span>
+<span id="cb7-130"><a href="#cb7-130" aria-hidden="true" tabindex="-1"></a>           <span class="at">y =</span> <span class="cn">NULL</span>,</span>
+<span id="cb7-131"><a href="#cb7-131" aria-hidden="true" tabindex="-1"></a>           <span class="at">caption =</span> <span class="st">"Zones with less than 15 shots will be faded."</span>)</span>
+<span id="cb7-132"><a href="#cb7-132" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb7-133"><a href="#cb7-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-134"><a href="#cb7-134" aria-hidden="true" tabindex="-1"></a>  <span class="co"># plot 2</span></span>
+<span id="cb7-135"><a href="#cb7-135" aria-hidden="true" tabindex="-1"></a>  output<span class="sc">$</span>plot2 <span class="ot">&lt;-</span> <span class="fu">renderPlot</span>({</span>
+<span id="cb7-136"><a href="#cb7-136" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-137"><a href="#cb7-137" aria-hidden="true" tabindex="-1"></a>    <span class="co"># labels for plot titles</span></span>
+<span id="cb7-138"><a href="#cb7-138" aria-hidden="true" tabindex="-1"></a>    metric_label <span class="ot">&lt;-</span> <span class="fu">case_when</span>(</span>
+<span id="cb7-139"><a href="#cb7-139" aria-hidden="true" tabindex="-1"></a>      input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"shot_pct"</span> <span class="sc">~</span> <span class="st">"% of Total Shots"</span>,</span>
+<span id="cb7-140"><a href="#cb7-140" aria-hidden="true" tabindex="-1"></a>      input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"fg_pct"</span> <span class="sc">~</span> <span class="st">"FG%"</span>,</span>
+<span id="cb7-141"><a href="#cb7-141" aria-hidden="true" tabindex="-1"></a>      input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"pts_per_shot"</span> <span class="sc">~</span> <span class="st">"Expected Points per Shot"</span></span>
+<span id="cb7-142"><a href="#cb7-142" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-143"><a href="#cb7-143" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-144"><a href="#cb7-144" aria-hidden="true" tabindex="-1"></a>    zone_stats <span class="ot">&lt;-</span> <span class="fu">reactive_df2</span>() <span class="sc">|&gt;</span></span>
+<span id="cb7-145"><a href="#cb7-145" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(shot_zone) <span class="sc">|&gt;</span></span>
+<span id="cb7-146"><a href="#cb7-146" aria-hidden="true" tabindex="-1"></a>      <span class="fu">summarise</span>(</span>
+<span id="cb7-147"><a href="#cb7-147" aria-hidden="true" tabindex="-1"></a>        <span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb7-148"><a href="#cb7-148" aria-hidden="true" tabindex="-1"></a>        <span class="at">low_sample =</span> <span class="fu">n</span>() <span class="sc">&lt;</span> <span class="dv">15</span>,</span>
+<span id="cb7-149"><a href="#cb7-149" aria-hidden="true" tabindex="-1"></a>        <span class="at">fg_pct =</span> <span class="fu">mean</span>(shot_outcome, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb7-150"><a href="#cb7-150" aria-hidden="true" tabindex="-1"></a>        <span class="at">pts_per_shot =</span> <span class="fu">mean</span>(shot_outcome <span class="sc">*</span> pts_value, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb7-151"><a href="#cb7-151" aria-hidden="true" tabindex="-1"></a>        <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb7-152"><a href="#cb7-152" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">|&gt;</span></span>
+<span id="cb7-153"><a href="#cb7-153" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(</span>
+<span id="cb7-154"><a href="#cb7-154" aria-hidden="true" tabindex="-1"></a>        <span class="at">shot_pct =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n) <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb7-155"><a href="#cb7-155" aria-hidden="true" tabindex="-1"></a>        <span class="at">value =</span> <span class="cf">if</span> (input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"shot_pct"</span>) shot_pct</span>
+<span id="cb7-156"><a href="#cb7-156" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span> <span class="cf">if</span> (input<span class="sc">$</span>metric <span class="sc">==</span> <span class="st">"fg_pct"</span>) fg_pct</span>
+<span id="cb7-157"><a href="#cb7-157" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span> pts_per_shot</span>
+<span id="cb7-158"><a href="#cb7-158" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb7-159"><a href="#cb7-159" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-160"><a href="#cb7-160" aria-hidden="true" tabindex="-1"></a>  plot_df <span class="ot">&lt;-</span> <span class="fu">reactive_df2</span>() <span class="sc">|&gt;</span> <span class="fu">left_join</span>(zone_stats, <span class="at">by =</span> <span class="st">"shot_zone"</span>)</span>
+<span id="cb7-161"><a href="#cb7-161" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-162"><a href="#cb7-162" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(plot_df, <span class="fu">aes</span>(<span class="at">x =</span> coordinate_y, <span class="at">y =</span> <span class="dv">47</span> <span class="sc">-</span> <span class="fu">abs</span>(coordinate_x), <span class="at">color =</span> value)) <span class="sc">+</span></span>
+<span id="cb7-163"><a href="#cb7-163" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">alpha =</span> <span class="fu">if_else</span>(low_sample, <span class="fl">0.15</span>, <span class="fl">0.8</span>)), <span class="at">size =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
+<span id="cb7-164"><a href="#cb7-164" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_gradient</span>(<span class="at">name =</span> input<span class="sc">$</span>metric, <span class="at">low =</span> <span class="st">"#fde8e8"</span>, <span class="at">high =</span> <span class="st">"#8b0000"</span>) <span class="sc">+</span></span>
+<span id="cb7-165"><a href="#cb7-165" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_alpha_identity</span>() <span class="sc">+</span></span>
+<span id="cb7-166"><a href="#cb7-166" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
+<span id="cb7-167"><a href="#cb7-167" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb7-168"><a href="#cb7-168" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> glue<span class="sc">::</span><span class="fu">glue</span>(input<span class="sc">$</span>selection2, <span class="st">" "</span>, metric_label), </span>
+<span id="cb7-169"><a href="#cb7-169" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="cn">NULL</span>, </span>
+<span id="cb7-170"><a href="#cb7-170" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> <span class="cn">NULL</span>,</span>
+<span id="cb7-171"><a href="#cb7-171" aria-hidden="true" tabindex="-1"></a>         <span class="at">caption =</span> <span class="st">"Zones with less than 15 shots will be faded."</span>)</span>
+<span id="cb7-172"><a href="#cb7-172" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb7-173"><a href="#cb7-173" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-174"><a href="#cb7-174" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-175"><a href="#cb7-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-176"><a href="#cb7-176" aria-hidden="true" tabindex="-1"></a><span class="fu">shinyApp</span>(ui, server)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <p></p><div style="width: 100% ; height: 400px ; text-align: center; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box;" class="muted well">Shiny applications not supported in static R Markdown documents</div><p></p>
 </div>
