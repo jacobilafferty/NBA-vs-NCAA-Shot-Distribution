@@ -345,6 +345,7 @@ The code and link to the shiny app can be found below:
 ```{r}
 #| warning: false
 #| message: false
+#| eval: false
 nba_rosters  <- hoopR::load_nba_player_box(seasons = 2025) |>
   select(athlete_id, athlete_display_name) |> distinct()
 
