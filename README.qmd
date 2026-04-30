@@ -17,10 +17,11 @@ I used play-by-play data from the 2025 NBA and NCAA seasons sourced from the hoo
 ### Plots
 
 ```{r}
-library(tidyverse)
-library(ggplot2)
+#| echo: false
 #| message: false
 #| warning: false
+library(tidyverse)
+library(ggplot2)
 
 nba_raw <- hoopR::load_nba_pbp(seasons = 2025)
 ncaa_raw <- hoopR::load_mbb_pbp(seasons = 2025)
@@ -155,6 +156,9 @@ zone_efficiency <- shot_df |>
 Here are a couple plots I used to help explore my research questions.
 
 ```{r}
+#| echo: false
+#| message: false
+#| warning: false
 # Compute shot count per zone per league
 zone_counts <- shot_df |>
   count(league, shot_zone) |>
@@ -183,6 +187,9 @@ ggplot(shot_df, aes(x = coordinate_y, y = 47 - abs(coordinate_x), color = shot_p
 ```
 
 ```{r}
+#| echo: false
+#| message: false
+#| warning: false
 zone_pts <- shot_df |>
   group_by(league, shot_zone) |>
   summarise(pts_per_shot = mean(shot_outcome * pts_value, na.rm = TRUE), .groups = "drop")
