@@ -17,6 +17,8 @@ I used play-by-play data from the 2025 NBA and NCAA seasons sourced from the hoo
 ### Plots
 
 ```{r}
+library(tidyverse)
+library(ggplot2)
 #| message: false
 #| warning: false
 
